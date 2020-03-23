@@ -6,3 +6,4 @@ DATABASE = {
     "PASSWORD": os.getenv("DB_PASS", "dunno"),
     "NAME": os.getenv("DB_NAME", "flask_test")
 }
+SECRET_KEY=os.getenv("SECRET_KEY", None)
