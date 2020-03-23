@@ -1,3 +1,4 @@
+language: python
 deploy:
   provider: heroku
   api_key:
@@ -6,3 +7,5 @@ deploy:
   on:
     repo: SivagiriVisakan/trail-app
     branch: PRODUCTION
+script:
+  - echo "Attempting to deploy..."
