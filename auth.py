@@ -55,9 +55,46 @@ def get_user(username, with_password=False):
             result.pop("password")
         return result
 
+def get_email(email):
+    db_conn = db.get_database_connection()
+    with db_conn.cursor() as cursor:
+        sql = 'SELECT `email` FROM `user` WHERE `email`=%s'
+        cursor.execute(sql, (email, ))
+        result = cursor.fetchone()
+        return result
+
 def check_user_login(username: str, password: str):
     if username and password:
         result = get_user(username, with_password=True)
-        if result:
+        if result:  
             return result if check_password_hash(result["password"], password) else None 
     return None
+
+
+
+@blueprint.route('/signup',methods=["GET","POST"])
+def signup():
+    if request.method == "GET":
+        return render_template('signup.html')
+    elif request.method == "POST":
+        username = request.form.get("username", None)
+        first_name = request.form.get("first_name", None)
+        last_name = request.form.get("last_name", None)
+        email = request.form.get("email", None)
+        password = request.form.get("password", None)
+        user = get_user(username)
+        if not user:
+            flash("Username already exists","danger")
+            return render_template('signup.html')
+        else:
+            _email = get_email(email)
+            if not email:
+                flash("Email already exists","danger")
+                return render_template('signup.html')
+            else:
+                db_conn = db.get_database_connection()                
+                with db_conn.cursor() as cursor:
+                    cursor.execute("INSERT INTO `user`(`username`,`email`,`first_name`,`last_name`,`password`) Values (%s, %s, %s, %s, %s)", (username, email, first_name, last_name, password))
+                    db.commit();
+                session["username"] = user["username"]
+                return redirect(url_for('auth.my_details'))
