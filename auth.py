@@ -82,19 +82,32 @@ def signup():
         last_name = request.form.get("last_name", None)
         email = request.form.get("email", None)
         password = request.form.get("password", None)
-        user = get_user(username)
-        if not user:
-            flash("Username already exists","danger")
-            return render_template('signup.html')
-        else:
-            _email = get_email(email)
-            if not email:
-                flash("Email already exists","danger")
+        if username and first_name and last_name and email and password:
+            user = get_user(username)
+            if not user:
+                flash("Username already exists","danger")
                 return render_template('signup.html')
             else:
-                db_conn = db.get_database_connection()                
-                with db_conn.cursor() as cursor:
-                    cursor.execute("INSERT INTO `user`(`username`,`email`,`first_name`,`last_name`,`password`) Values (%s, %s, %s, %s, %s)", (username, email, first_name, last_name, password))
-                    db.commit();
-                session["username"] = user["username"]
-                return redirect(url_for('auth.my_details'))
+                _email = get_email(email)
+                if not email:
+                    flash("Email already exists","danger")
+                    return render_template('signup.html')
+                else:
+                    db_conn = db.get_database_connection()                
+                    with db_conn.cursor() as cursor:
+                        cursor.execute("INSERT INTO `user`(`username`,`email`,`first_name`,`last_name`,`password`) Values (%s, %s, %s, %s, %s)", (username, email, first_name, last_name, password))
+                        db.commit();
+                    session["username"] = user["username"]
+                    return redirect(url_for('auth.my_details'))
+        else:
+            if not username:
+                flash("Enter Username", "danger")
+            if not first_name:
+                flash("Enter First name", "danger")
+            if not last_name:
+                flash("Enter Last name", "danger")
+            if not email:
+                flash("Enter Email", "danger")
+            if not password:
+                flash("Enter Password", "danger")
+            return render_template('signup.html')
