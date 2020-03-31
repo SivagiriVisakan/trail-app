@@ -84,12 +84,12 @@ def signup():
         password = request.form.get("password", None)
         if username and first_name and last_name and email and password:
             user = get_user(username)
-            if not user:
+            if user is not None:
                 flash("Username already exists","danger")
                 return render_template('signup.html')
             else:
                 _email = get_email(email)
-                if not email:
+                if _email is not None:
                     flash("Email already exists","danger")
                     return render_template('signup.html')
                 else:
@@ -100,14 +100,18 @@ def signup():
                     session["username"] = user["username"]
                     return redirect(url_for('auth.my_details'))
         else:
-            if not username:
+            if username is None:
                 flash("Enter Username", "danger")
-            if not first_name:
+                return render_template('signup.html')
+            if first_name is None:
                 flash("Enter First name", "danger")
-            if not last_name:
+                return render_template('signup.html')
+            if last_name is None:
                 flash("Enter Last name", "danger")
-            if not email:
+                return render_template('signup.html')
+            if email is None:
                 flash("Enter Email", "danger")
-            if not password:
+                return render_template('signup.html')
+            if password is None:
                 flash("Enter Password", "danger")
-            return render_template('signup.html')
+                return render_template('signup.html')
