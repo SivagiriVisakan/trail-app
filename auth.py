@@ -40,6 +40,11 @@ def login():
             session["username"] = user["username"]
             return redirect(url_for('auth.my_details'))
 
+@blueprint.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('auth.login'))
+
 @blueprint.route('/me', methods=["GET"])
 @login_required
 def my_details():
@@ -94,6 +99,7 @@ def signup():
         email = request.form.get("email", None)
         password = request.form.get("password", None)
         print(f'{username}')
+
         if username and first_name and last_name and email and password:
             user = get_user(username)
             if user is not None:
