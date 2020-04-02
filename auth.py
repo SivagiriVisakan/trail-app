@@ -6,7 +6,7 @@ from functools import wraps
 
 from flask import (Blueprint, flash, g, redirect, render_template, request,
                    session, url_for)
-from flask_bcrypt import check_password_hash
+from flask_bcrypt import check_password_hash, generate_password_hash
 
 import db
 
@@ -74,14 +74,26 @@ def check_user_login(username: str, password: str):
 
 @blueprint.route('/signup',methods=["GET","POST"])
 def signup():
+    if 'username' in session:
+        return redirect(url_for('auth.my_details'))
     if request.method == "GET":
         return render_template('signup.html')
     elif request.method == "POST":
         username = request.form.get("username", None)
+        if len(username) > 20:
+            flash("Username should not exceed 20 characters","danger")
+            return render_template('signup.html')
         first_name = request.form.get("first_name", None)
+        if len(first_name) > 30:
+            flash("first_name should not exceed 30 characters","danger")
+            return render_template('signup.html')
         last_name = request.form.get("last_name", None)
+        if len(last_name) > 30:
+            flash("last_name should not exceed 30 characters","danger")
+            return render_template('signup.html')
         email = request.form.get("email", None)
         password = request.form.get("password", None)
+        print(f'{username}')
         if username and first_name and last_name and email and password:
             user = get_user(username)
             if user is not None:
@@ -93,25 +105,23 @@ def signup():
                     flash("Email already exists","danger")
                     return render_template('signup.html')
                 else:
+                    password_hash = generate_password_hash(password)
                     db_conn = db.get_database_connection()                
                     with db_conn.cursor() as cursor:
-                        cursor.execute("INSERT INTO `user`(`username`,`email`,`first_name`,`last_name`,`password`) Values (%s, %s, %s, %s, %s)", (username, email, first_name, last_name, password))
-                        db.commit();
-                    session["username"] = user["username"]
+                        cursor.execute("INSERT INTO `user`(`username`,`email`,`first_name`,`last_name`,`password`) Values (%s, %s, %s, %s, %s)", (username, email, first_name, last_name, password_hash))
+                        db_conn.commit();
+                    session["username"] = username
                     return redirect(url_for('auth.my_details'))
         else:
-            if username is None:
+            if not username:
                 flash("Enter Username", "danger")
-                return render_template('signup.html')
-            if first_name is None:
+            if not first_name:
                 flash("Enter First name", "danger")
-                return render_template('signup.html')
-            if last_name is None:
+            if not last_name:
                 flash("Enter Last name", "danger")
-                return render_template('signup.html')
-            if email is None:
+            if not email:
                 flash("Enter Email", "danger")
-                return render_template('signup.html')
-            if password is None:
+            if not password:
                 flash("Enter Password", "danger")
-                return render_template('signup.html')
+            
+            return render_template('signup.html')

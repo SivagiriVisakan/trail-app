@@ -3,7 +3,7 @@
 {% block title %}SignUp - Trail{% endblock %}
 
 {% block content %}
-  <nav id="navbar-main" class="navbar navbar-horizontal navbar-transparent navbar-main navbar-expand-lg navbar-light">
+ <!--  <nav id="navbar-main" class="navbar navbar-horizontal navbar-transparent navbar-main navbar-expand-lg navbar-light">
     <div class="container">
       <a class="navbar-brand" href="dashboard.html">
         <img src="../assets/img/brand/white.png">
@@ -81,7 +81,7 @@
         </ul>
       </div>
     </div>
-  </nav>
+  </nav> -->
   <!-- Main content -->
   <div class="main-content">
     <!-- Header -->
@@ -111,7 +111,8 @@
             <!-- <div class="card-header bg-transparent pb-5">
             </div> -->
             <div class="card-body px-lg-5 py-lg-5">
-              <form role="form">
+                    {% include "partials/flashed_messages.html"%}
+              <form role="form" action="{{ url_for('auth.signup') }}" method="POST">
                 <div class="form-group">
                   <div class="input-group input-group-merge input-group-alternative mb-3">
                     <div class="input-group-prepend">
@@ -175,7 +176,7 @@
     </div>
   </div>
   <!-- Footer -->
-  <footer class="py-5" id="footer-main">
+  <!-- <footer class="py-5" id="footer-main">
     <div class="container">
       <div class="row align-items-center justify-content-xl-between">
         <div class="col-xl-6">
@@ -201,6 +202,6 @@
         </div>
       </div>
     </div>
-  </footer>
+  </footer> -->
 
 {% endblock %}
