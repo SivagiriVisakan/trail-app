@@ -2,6 +2,7 @@ from flask import Flask
 from flask_bcrypt import Bcrypt
 
 import auth
+import events
 import config
 import db
 
@@ -9,6 +10,7 @@ import db
 def register_blueprints(app):
     """Register Flask blueprints."""
     app.register_blueprint(auth.blueprint)
+    app.register_blueprint(events.blueprint)
 
 def register_extensions(app):
     """Register Flask extensions."""
