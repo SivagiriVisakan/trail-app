@@ -1,5 +1,3 @@
-import db
-
 from faker import Faker
 
 import random
@@ -9,11 +7,6 @@ faker_generate = Faker()
 from random import randint
 
 import json
-
-
-#fake_url = faker_generate.url()
-
-#print(fake_url)
 
 project_id = "flizon"
 
@@ -48,7 +41,7 @@ def populate():
 	for origin_id in origin_id_list:
 		user_agent = faker_generate.user_agent()
 
-		for i in range(random.randrange(20,40,2)):
+		for i in range(random.randrange(50,70,8)):
 			page_url = random.choice(url_names)
 
 			event_index = url_names.index(page_url)
@@ -60,23 +53,8 @@ def populate():
 			custom_event_type = custom_dict[event_type]
 
 			custom_data = json.dumps(custom_event_type)
-
-			print(origin_id,user_agent,page_url,event_type,custom_data)
-
-			db_conn = db.get_database_connection()
-
-			with db_conn.curson() as cursor:
-				cursor.execute("INSERT INTO `user`(`project_id`,`origin_id`,`user_agent`,`page_url`,`event_type`,`custom_data`) Values (%s, %s, %s, %s, %s, %s)", (project_id, origin_id, user_agent, page_url, event_type, custom_data))
-				db_conn.commit();
-
-
-
-
-
-
-
-
-
+	
+			print("INSERT INTO `web_event`(`project_id`,`origin_id`,`user_agent`,`page_url`,`event_type`,`custom_data`) Values", (project_id, origin_id, user_agent, page_url, event_type, custom_data))
 
 if __name__ == '__main__':
 	print("populate script")
