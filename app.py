@@ -5,12 +5,13 @@ import auth
 import events
 import config
 import db
-
+import projects
 
 def register_blueprints(app):
     """Register Flask blueprints."""
     app.register_blueprint(auth.blueprint)
     app.register_blueprint(events.blueprint)
+    app.register_blueprint(projects.blueprint)
 
 def register_extensions(app):
     """Register Flask extensions."""
