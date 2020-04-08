@@ -1,3 +1,4 @@
+import datetime
 import json
 
 from flask import Blueprint, request
@@ -18,6 +19,76 @@ def list_all_events():
         result = cursor.fetchall()
         return {"events": result}
     return {}
+
+
+def get_events(project_id:str, event_type:str = None, start_time:datetime.datetime = None, \
+                end_time:datetime.datetime = None):
+    '''
+    Fetches the events that match the given parameters from the database.
+
+    Returns:
+        A list of events records or empty list if no records match the given criteria.
+    '''
+
+    db_conn = db.get_database_connection()
+    with db_conn.cursor() as cursor:
+        params_to_sql = []
+        sql = 'SELECT * FROM `web_event` WHERE project_id=%s'
+        params_to_sql.append(project_id)
+        if event_type:
+            sql += ' AND event_type=%s'
+            params_to_sql.append(event_type)
+
+        if start_time:
+            sql += ' AND time_entered >= DATE(%s)'
+            params_to_sql.append(start_time.isoformat())
+
+        if end_time:
+            sql += ' AND time_entered <= DATE(%s)'
+            params_to_sql.append(end_time)
+        cursor.execute(sql, params_to_sql)
+        result = cursor.fetchall()
+        return result
+
+
+# TODO: Restrict access to require some kind of authorization
+
+@blueprint.route('/api/v1/list-events/<string:project>/', methods=["GET"])
+def list_events(project):
+    """
+    This endpoint gets the events associated with the given `project`.
+    It also can be used to filter events with some parameters.
+    If no parameter is given, it returns all the events
+
+    parameters:
+    	event_type: The events that have this particular type will only be returned
+	    start_time: timestamp
+                    Events that were logged after this time will be returned
+	    end_time:  timestamp
+                    The events returned would have been logged before this time
+    """
+
+    response = {"success": False}
+    params = {}
+
+    if "event_type" in request.args:
+        params["event_type"] = request.args["event_type"]
+    try:
+        if "start_time" in request.args:
+                timestamp = float(request.args["start_time"])
+                params["start_time"] = datetime.datetime.utcfromtimestamp(timestamp)
+
+        if "end_time" in request.args:
+                timestamp = float(request.args["end_time"])
+                params["end_time"] = datetime.datetime.utcfromtimestamp(timestamp).isoformat()
+    except:
+        response["error"] = "Invalid time parameter"
+        return response, 400
+
+    result = get_events(project, **params)
+    response["events"] = result
+    response["success"] = True
+    return response
 
 
 # This function adds CORS headers to all the responses from this blueprint
