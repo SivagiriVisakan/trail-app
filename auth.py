@@ -35,9 +35,11 @@ def login():
         user = check_user_login(username, password)
         if not user:
             flash("Invalid username or password", "danger")
-            return render_template('login.html')
+            return render_template('login.html', next=request.args.get("next", None))
         else:
             session["username"] = user["username"]
+            if request.args.get('next', None):
+                return redirect(request.args["next"])
             return redirect(url_for('auth.my_details'))
 
 @blueprint.route('/logout')

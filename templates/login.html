@@ -30,7 +30,7 @@
                     <small>Sign in to continue</small>
                   </div>
                         {% include "partials/flashed_messages.html"%}
-                  <form role="form" action="{{ url_for('auth.login') }}" method="POST">
+                  <form role="form" action="{{ url_for('auth.login', next=request.args.get('next','')) }}" method="POST">
                     <div class="form-group mb-3">
                       <div class="input-group input-group-merge input-group-alternative">
                         <div class="input-group-prepend">
