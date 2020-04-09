@@ -1,4 +1,5 @@
 import datetime
+#from datetime import datetime
 import json
 
 from flask import Blueprint, request
@@ -89,6 +90,94 @@ def list_events(project):
     response["events"] = result
     response["success"] = True
     return response
+
+@blueprint.route('/api/v1/get-metrics/<string:project>/', methods=['GET'])
+def get_metrics(project):
+
+    response ={}
+    start_time = None
+    end_time = None
+
+    try:
+        if  "start_time" in request.args:
+            timestamp = float(request.args["start_time"])
+            start_time = datetime.datetime.utcfromtimestamp(timestamp).isoformat()
+
+        if "end_time" in request.args:
+            timestamp = float(request.args["end_time"])
+            end_time = datetime.datetime.utcfromtimestamp(timestamp).isoformat()
+    except:
+        response["error"] = "Invalid time parameter"
+        return response, 400
+
+    if start_time is None and end_time is None:
+        response["error"] = "No parameter passed"
+        return response, 400
+
+    if start_time or end_time:
+        if start_time is None:
+            start_time = (datetime.datetime.now() - datetime.timedelta(30)).strftime('%Y-%m-%d')
+
+        if end_time is None:
+            end_time = datetime.datetime.now().strftime('%Y-%m-%d')
+    
+    dates_array = (start_time + datetime.datetime.timedelta(days=x) for x in range(0, (end_time-start_time).days))
+
+    for current_date in dates_array:
+
+        db_conn = db.get_database_connection()
+        with db_conn.cursor() as cursor:
+
+            result = {}
+            params_to_sql = []
+            sql =  'SELECT COUNT(DISTINCT(origin_id)) AS total_visitors FROM `web_event` WHERE project_id=%s \
+                        AND DATE(time_entered)=DATE(%s)'
+            params_to_sql.append(project)
+            params_to_sql.append(current_date)
+
+            cursor.execute(sql, params_to_sql)
+            records = cursor.fetchone()
+            result['total_visitors'] = records['total_visitors']
+
+            params_to_sql.clear()
+            sql = 'SELECT COUNT(*) AS pageviews FROM `web_event` WHERE project_id=%s AND event_type=%s \
+                        AND DATE(time_entered)=DATE(%s)'
+            params_to_sql.append(project)
+            params_to_sql.append('pageview')
+            params_to_sql.append(current_date)
+
+            cursor.execute(sql, params_to_sql)
+            records = cursor.fetchone()
+            result['pageviews'] = records['pageviews']
+
+            params_to_sql.clear()
+            sql = 'SELECT COUNT(*) AS total_events FROM `web_event` WHERE project_id=%s AND DATE(time_entered)=DATE(%s)'
+            params_to_sql.append(project)
+            params_to_sql.append(current_date)
+
+            cursor.execute(sql, params_to_sql)
+            records = cursor.fetchone()
+            result['total_events'] = records['total_events']
+
+            params_to_sql.clear()
+            sql = 'SELECT event_type, COUNT(*) FROM `web_event` WHERE project_id=%s \
+                        AND DATE(time_entered)=DATE(%s) GROUP BY event_type'
+            params_to_sql.append(project)
+            params_to_sql.append(current_date)
+
+            cursor.execute(sql, params_to_sql)            
+            records = cursor.fetchall()
+            category_wise = {}
+            for row in records:
+                if row is not None:
+                    category_wise[row['event_type']] = row['COUNT(*)']
+
+            result['category_wise'] = category_wise
+
+            response[current_date] = result
+
+    return response
+
 
 
 # This function adds CORS headers to all the responses from this blueprint
