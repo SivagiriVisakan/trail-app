@@ -94,37 +94,62 @@ def list_events(project):
 @blueprint.route('/api/v1/get-metrics/<string:project>/', methods=['GET'])
 def get_metrics(project):
 
+    """
+    This endpoint gets the following metrics with the given `project`.
+    metrics : 
+        {
+            total_visitors: count of total no of distinct users visited the project will be returned
+            pageviews: count of total no of pageview events occured will be returned
+            total_events: count of total no of events occured will be returned
+            category_wise: events occured and the count of events occured will be returned
+        }
+
+    Parameters is passed to get the metrics
+    If no parameters is passed then a error is thrown
+    
+    parameters:
+        start_time: timestamp
+                    Metrics of events logged after this time will only be taken into account
+        end_time: timestamp
+                  Metrics of events logged after this time wiil only be taken into account 
+
+    """
+
     response ={}
     start_time = None
     end_time = None
 
+    # Keys that must be present in a request to get metrics
+    REQUIRED_PARAMETERS = {"start_time","end_time"}
+    
+    response = {"success": False}
+    request_body = request.args.to_dict()
+
+    missing = check_missing_keys(request_body, REQUIRED_PARAMETERS)
+    if missing:
+        response["error"] = "Malformed request - missing parameters - " + str(missing)
+        return response, 400    
+
     try:
-        if  "start_time" in request.args:
+        if "start_time" in request.args:
             timestamp = float(request.args["start_time"])
-            start_time = datetime.datetime.utcfromtimestamp(timestamp).isoformat()
+            start_time = datetime.datetime.fromtimestamp(timestamp)
 
         if "end_time" in request.args:
             timestamp = float(request.args["end_time"])
-            end_time = datetime.datetime.utcfromtimestamp(timestamp).isoformat()
+            end_time = datetime.datetime.fromtimestamp(timestamp)
     except:
         response["error"] = "Invalid time parameter"
         return response, 400
+            
+    start_time = datetime.datetime.strptime(start_time.strftime('%Y-%m-%d'),'%Y-%m-%d')
 
-    if start_time is None and end_time is None:
-        response["error"] = "No parameter passed"
-        return response, 400
-
-    if start_time or end_time:
-        if start_time is None:
-            start_time = (datetime.datetime.now() - datetime.timedelta(30)).strftime('%Y-%m-%d')
-
-        if end_time is None:
-            end_time = datetime.datetime.now().strftime('%Y-%m-%d')
+    end_time = datetime.datetime.strptime(end_time.strftime('%Y-%m-%d'),'%Y-%m-%d')
     
-    dates_array = (start_time + datetime.datetime.timedelta(days=x) for x in range(0, (end_time-start_time).days))
+    dates_array = (start_time + datetime.timedelta(days=x) for x in range(0, (end_time-start_time).days))
 
     for current_date in dates_array:
-
+        current_date = current_date.strftime('%Y-%m-%d')
         db_conn = db.get_database_connection()
         with db_conn.cursor() as cursor:
 
@@ -175,7 +200,7 @@ def get_metrics(project):
             result['category_wise'] = category_wise
 
             response[current_date] = result
-
+    response["success"] = True
     return response
 
 
