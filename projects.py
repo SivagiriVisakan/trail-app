@@ -14,3 +14,5 @@ blueprint = Blueprint('projects', __name__, url_prefix='/projects')
 @blueprint.route('/<string:project_id>/dashboard')
 def project_dashboard(project_id):
     return render_template('projects/home_dashboard.html')
+
+

@@ -91,6 +91,8 @@ def list_events(project):
     response["success"] = True
     return response
 
+    
+
 @blueprint.route('/api/v1/get-metrics/<string:project>/', methods=['GET'])
 def get_metrics(project):
 
@@ -276,3 +278,4 @@ def register_new_event():
 
         response["success"] = True
     return response
+

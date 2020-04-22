@@ -29,7 +29,7 @@
               <div class="row">
                 <div class="col">
                   <h5 class="card-title text-uppercase text-muted mb-0">Total visitors today</h5>
-                  <span class="h2 font-weight-bold mb-0">{{ "120,125" }}</span>
+                  <span class="h2 font-weight-bold mb-0" id="visitorsTodayText">Loading...</span>
                 </div>
                 <div class="col-auto">
                   <div class="icon icon-shape bg-gradient-red text-white rounded-circle shadow">
@@ -38,7 +38,7 @@
                 </div>
               </div>
               <p class="mt-3 mb-0 text-sm">
-                <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> +{{ "1,536" }}</span>
+                <span id="visitorsYesterday" class="mr-2"><i class="fa "></i> <span></span></span>
                 <span class="text-nowrap">from yesterday</span>
               </p>
             </div>
@@ -50,3 +50,7 @@
 </div>
 
 {% endblock content%}
+
+{% block extra_js %}
+  <script src="{{ url_for('static', filename='assets/js/trail/dashboard.js') }}"></script>
+{% endblock extra_js %}
