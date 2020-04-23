@@ -148,7 +148,10 @@ def get_metrics(project):
 
     end_time = datetime.datetime.strptime(end_time.strftime('%Y-%m-%d'),'%Y-%m-%d')
     
-    dates_array = (start_time + datetime.timedelta(days=x) for x in range(0, (end_time-start_time).days))
+    # This has the dates from given start time to endtime, including the 
+    # start date and end date
+    dates_array = (start_time + datetime.timedelta(days=x) for x in range(0, 
+                                                    (end_time-start_time).days+1))
 
     for current_date in dates_array:
         current_date = current_date.strftime('%Y-%m-%d')
