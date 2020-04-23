@@ -14,6 +14,23 @@ function getDateString(date){
   + pad(date.getDate())
 }
 
+// A helper function for setting the styles of the cards at the top in the dashboard
+// after comparing with the previous day's value. This depends in the element passed has the hierachy we assumed
+function addStylesForDashboardCard(element, today, yesterday)
+{
+  element.children[1].textContent = (today - yesterday).toString();
+  if(yesterday <= today)
+  {
+    element.classList.add("text-success");
+    element.children[0].classList.add("fa-arrow-up");
+  }
+  else
+  {
+    element.classList.add("text-danger");
+    element.children[0].classList.add("fa-arrow-down");
+  }
+
+}
 
 window.onload = () => {
     $.ajax({
@@ -26,26 +43,23 @@ window.onload = () => {
         type: 'GET',
         success: function(data) {
           var todayDateString = getDateString(todayDate);
-          console.log(data);
-          console.log(todayDateString);
           var todayData = data[todayDateString];
-          $('#visitorsTodayText').html(todayData["total_visitors"]);
-
           var yesterdayDateString = getDateString(yesterdayDate);
           var yesterdayData = data[yesterdayDateString];
 
+          $('#visitorsTodayText').html(todayData["total_visitors"]);
+          $('#pageviewsTodayText').html(todayData["pageviews"]);
+          $('#eventsTodayText').html(todayData["total_events"]);
+
           var element = document.getElementById("visitorsYesterday");
-          element.children[1].textContent = (todayData.total_visitors - yesterdayData.total_visitors).toString();
-          if(yesterdayData.total_visitors <= todayData.total_visitors)
-          {
-            element.classList.add("text-success");
-            element.children[0].classList.add("fa-arrow-up");
-          }
-          else
-          {
-            element.classList.add("text-danger");
-            element.children[0].classList.add("fa-arrow-down");
-          }
+          addStylesForDashboardCard(element, todayData["total_visitors"], yesterdayData["total_visitors"]);
+
+          element = document.getElementById("pageviewsYesterday");
+          addStylesForDashboardCard(element, todayData["pageviews"], yesterdayData["pageviews"]);
+
+          element = document.getElementById("eventsYesterday");
+          addStylesForDashboardCard(element, todayData["total_events"], yesterdayData["total_events"]);
+
         }
       }); 
 
