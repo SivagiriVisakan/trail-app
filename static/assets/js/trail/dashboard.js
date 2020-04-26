@@ -1,9 +1,9 @@
-const todayDate = new Date(); // Today's date, to get the metrics for today
+const todayDate = new Date("05 Apr 2020"); // Today's date, to get the metrics for today
 
-const yesterdayDate = new Date(); // We get the metrics from yesterday also to compare and show 
-yesterdayDate.setDate(yesterdayDate.getDate()-1);
+const yesterdayDate = new Date("05 Apr 2020"); // We get the metrics from yesterday also to compare and show 
+yesterdayDate.setDate(yesterdayDate.getDate() - 1);
 
-const startDate = new Date(); // We get the metrics from the past week until today, which is used to plot the graph 
+const startDate = new Date("05 Apr 2020"); // We get the metrics from the past week until today, which is used to plot the graph 
 startDate.setDate(startDate.getDate() - 6);
 
 var metrics = {} // To store the fetched data
@@ -72,9 +72,26 @@ window.addEventListener('DOMContentLoaded', () => {
       extractEventDataForChart(data, "pageview");
       metrics = data;
       drawChart();
+
+      populateEventsTable(metrics[todayDateString]["category_wise"])
     }
   });
 });
+
+function populateEventsTable(eventsData) {
+  window.aa = eventsData;
+  let table = document.getElementById("top-events-table");
+  for (let event in eventsData) {
+    let row = table.insertRow();
+    let cell = row.insertCell();
+    let text = document.createTextNode(event);
+    cell.appendChild(text);
+
+    cell = row.insertCell();
+    text = document.createTextNode(eventsData[event]);
+    cell.appendChild(text);
+  }
+}
 
 function extractEventDataForChart(data, type) {
   var config = {}
@@ -110,7 +127,7 @@ function drawChart() {
   var pageviewData = extractEventDataForChart(metrics, "pageview");
   pageviewData.labels.map((value, idx) => {
     var d = new Date(value);
-    var options = {month:'short', day: 'numeric'}
+    var options = { month: 'short', day: 'numeric' }
     pageviewData.labels[idx] = new Intl.DateTimeFormat('en-US', options).format(d);
   });
   var config = {

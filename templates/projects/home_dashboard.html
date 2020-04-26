@@ -133,11 +133,41 @@
     </div>
   </div>
 </div>
-{% endblock content%}
 
-{% block extra_js %}
-<script>
-  var projectName = {{ template_context.project_id | tojson }};
-</script>
-<script src="{{ url_for('static', filename='assets/js/trail/dashboard.js') }}"></script>
-{% endblock extra_js %}
+<div class="container-fluid">
+  <div class="row  justify-content-md-center">
+    <div class="col-xl-8">
+      <div class="card">
+        <div class="card-header border-0">
+          <div class="row align-items-center">
+            <div class="col">
+              <h3 class="mb-0">Events</h3>
+            </div>
+            <div class="col text-right">
+              <a href="#!" class="btn btn-sm btn-primary">See all</a>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table align-items-center table-flush" id="top-events-table">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col">Event</th>
+                <th scope="col">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock content%}
+
+  {% block extra_js %}
+  <script>
+    var projectName = {{ template_context.project_id | tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='assets/js/trail/dashboard.js') }}"></script>
+  {% endblock extra_js %}
