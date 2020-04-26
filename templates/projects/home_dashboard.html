@@ -136,5 +136,8 @@
 {% endblock content%}
 
 {% block extra_js %}
+<script>
+  var projectName = {{ template_context.project_id | tojson }};
+</script>
 <script src="{{ url_for('static', filename='assets/js/trail/dashboard.js') }}"></script>
 {% endblock extra_js %}
