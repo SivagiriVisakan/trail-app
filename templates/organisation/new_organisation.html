@@ -1,0 +1,63 @@
+{% extends "layouts/base_layout.html" %}
+
+{% block title %}New organisation - Trail{% endblock %}
+
+{% block content %}
+{% include "partials/signed_in_top_nav.html" %}
+
+
+<div class="main-content">
+  <div class="header pb-6 d-flex align-items-center" style="min-height: 500px; background: #566be8">
+    <!-- Header container -->
+    <div class="container-fluid d-flex align-items-center">
+      <div class="row">
+        <div class="col-lg">
+          <h2 class="display-3 text-white">Create new organisation</h2>
+          <h3 class="text-white mt-0  mb-5 font-weight-normal">Just a bit more, enter the details of the organisation
+            and we're all set</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container mt-5 pb-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8">
+        <div class="card bg-secondary border-0">
+          <div class="card-body px-lg-5 py-lg-5">
+            {% include "partials/flashed_messages.html"%}
+            <form method="POST" role="form" action="{{ url_for('organisation.new_organisation') }}"
+              enctype="multipart/form-data">
+
+              <div class="form-group">
+
+                <label for="slug-input">Slug</label>
+
+                <input class="form-control" id="slug-input" placeholder="A unique identifier for your organisation"
+                  name="slug" maxlength="20" type="text">
+              </div>
+              <div class="form-group">
+                <label for="name-input">Organisation Name</label>
+                <input class="form-control" id="name-input" placeholder="A name for this organisation" name="name"
+                  maxlength="30" type="text">
+              </div>
+              <div class="form-group">
+
+                <label for="logo-file-input">Logo for the organisation</label>
+                <input type="file" class="custom-file-input" id="logo-file-input">
+              </div>
+              <div class="text-center">
+                <input type="submit" class="btn btn-primary mt-4" value="Create organisation">
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}

@@ -17,4 +17,3 @@ blueprint = Blueprint('projects', __name__, url_prefix='/projects')
 def project_dashboard(project_id):
     return render_template('projects/home_dashboard.html', template_context={"project_id": project_id})
 
-
