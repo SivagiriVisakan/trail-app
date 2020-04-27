@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 import os
 import app
 
-blueprint = Blueprint('organisation', __name__, url_prefix='/organisation')
+blueprint = Blueprint('organisation', __name__, url_prefix='/')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
@@ -20,6 +20,8 @@ def allowed_file(filename):
 @blueprint.route('')
 @auth.login_required
 def organisation():
+	#TODO: Do conditional rendering here (or somewhere) based on user's authencation state
+	#		i.e if he is logged in, show workspaces list, else show a landing page.
 	return render_template('organisation/organisation.html', user=g.user)
 
 
@@ -37,7 +39,7 @@ def get_slug(slug):
 		return result
 
 
-@blueprint.route('/new_organisation',methods=["GET","POST"])
+@blueprint.route('/organisation/new',methods=["GET","POST"])
 @auth.login_required
 def new_organisation():
 	if request.method == "GET":
@@ -87,3 +89,11 @@ def new_organisation():
 				flash("Select file", "danger")
 
 			return render_template('organisation/new_organisation.html')
+
+
+# TODO: Restrict access to projects based on user
+@blueprint.route('/<string:workspace>/<string:project_id>/')
+@blueprint.route('/<string:workspace>/<string:project_id>/dashboard/')
+@auth.login_required
+def project_dashboard(workspace, project_id):
+    return render_template('projects/home_dashboard.html', template_context={"project_id": project_id})

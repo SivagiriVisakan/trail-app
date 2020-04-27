@@ -5,7 +5,6 @@ import auth
 import events
 import config
 import db
-import projects
 import organisation
 import os
 
@@ -16,7 +15,6 @@ def register_blueprints(app):
     """Register Flask blueprints."""
     app.register_blueprint(auth.blueprint)
     app.register_blueprint(events.blueprint)
-    app.register_blueprint(projects.blueprint)
     app.register_blueprint(organisation.blueprint)
 
 def register_extensions(app):
