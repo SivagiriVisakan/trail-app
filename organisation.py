@@ -1,7 +1,7 @@
 import json 
 import datetime 
 
-from flask import Blueprint, request, render_template, flash
+from flask import Blueprint, request, render_template, flash, g
 
 import db
 from utils import check_missing_keys
@@ -20,7 +20,7 @@ def allowed_file(filename):
 @blueprint.route('')
 @auth.login_required
 def organisation():
-	return render_template('organisation/organisation.html')
+	return render_template('organisation/organisation.html', user=g.user)
 
 
 @blueprint.route('/<string:slug>')
