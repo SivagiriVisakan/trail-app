@@ -19,7 +19,7 @@ def login_required(f):
         username = session.get("username", None)
         if not username:
             return redirect(url_for('auth.login', next=request.url))
-        g.user = get_user(username)
+        g.user = db.get_user(username)
         if g.user is None:
             return redirect(url_for('auth.login', next=request.url))
         return f(*args, **kwargs)
@@ -52,15 +52,6 @@ def logout():
 def my_details():
     return g.user or {}
 
-def get_user(username, with_password=False):
-    db_conn = db.get_database_connection()
-    with db_conn.cursor() as cursor:
-        sql = 'SELECT * FROM `user` WHERE `username`=%s'
-        cursor.execute(sql, (username, ))
-        result = cursor.fetchone()
-        if result and not with_password:
-            result.pop("password")
-        return result
 
 def get_email(email):
     db_conn = db.get_database_connection()
@@ -72,7 +63,7 @@ def get_email(email):
 
 def check_user_login(username: str, password: str):
     if username and password:
-        result = get_user(username, with_password=True)
+        result = db.get_user(username, with_password=True)
         if result:  
             return result if check_password_hash(result["password"], password) else None 
     return None
@@ -103,7 +94,7 @@ def signup():
         print(f'{username}')
 
         if username and first_name and last_name and email and password:
-            user = get_user(username)
+            user = db.get_user(username)
             if user is not None:
                 flash("Username already exists","danger")
                 return render_template('signup.html')

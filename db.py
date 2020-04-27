@@ -26,3 +26,14 @@ def close_database_connection(error):
     db_connection = g.pop('db_connection', None)
     if db_connection is not None:
         db_connection.close()
+
+
+def get_user(username, with_password=False):
+    db_conn = get_database_connection()
+    with db_conn.cursor() as cursor:
+        sql = 'SELECT * FROM `user` WHERE `username`=%s'
+        cursor.execute(sql, (username, ))
+        result = cursor.fetchone()
+        if result and not with_password:
+            result.pop("password")
+        return result
