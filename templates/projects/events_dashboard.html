@@ -1,0 +1,191 @@
+{% extends "layouts/dashboard_base_layout.html" %}
+{% set active_page = "Events" %}
+
+{% block title %}Events &middot; {{ template_context.project_id }} | Trail{% endblock %}
+
+{% block content %}
+<div class="header bg-primary pb-6">
+    <div class="container-fluid">
+        <div class="header-body">
+            <div class="row align-items-center py-4">
+                <div class="col-lg-12 col-12">
+                    <h6 class="h2 text-white d-inline-block mb-0">{{ template_context.project_id | title }}</h6>
+                    <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+                        <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+                            <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+                            <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Events</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+            <div class="row pl-3">
+                <div class="col col-xl-6 col-md-6">
+
+                    <div class="input-daterange datepicker row align-items-center">
+                        <div class="col">
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="ni ni-calendar-grid-58"></i> &nbsp;
+                                            From</span>
+                                    </div>
+                                    <input class="form-control" id="start-date-input" placeholder="Start date"
+                                        type="text" value="{{ template_context['start_date'].strftime('%m-%d-%Y') }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="form-group pl-2">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="ni ni-calendar-grid-58"></i>&nbsp;
+                                            To</span>
+                                    </div>
+                                    <input class="form-control" id="end-date-input" placeholder="End date" type="text"
+                                        value="{{ template_context['end_date'].strftime('%m-%d-%Y') }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="form-group">
+                        <select class="form-control" id="event-type-select-input"
+                            onchange="handleEventSelectionChange()">
+                            <option {% if request.args.get('event_type')==None %}selected{% endif %}>All events</option>
+                            {% for event in template_context.events_list %}
+                            <option {% if request.args.get('event_type')==event %}selected{% endif %}>{{ event }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col col-xl-1 col-md-6 pb-3">
+                    <button class="btn btn-secondary" onclick="handleRefreshClick()">Refresh</button>
+                </div>
+
+            </div>
+
+            <!-- Card stats -->
+            <div class="row">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card card-stats">
+                        <!-- Card body -->
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <h5 class="card-title text-uppercase text-muted mb-0">Total occurrences</h5>
+                                    <span class="h2 font-weight-bold mb-0" id="eventsTodayText"></span>
+                                    <div class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="sr-only">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="icon icon-shape bg-gradient-orange text-white rounded-circle shadow">
+                                        <i class="fa fa-layer-group"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid mt-4">
+    <div class="row justify-content-md-center">
+        <div class="col-xl-8">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6 class="text-uppercase text-muted ls-1 mb-1"></h6>
+                            <h5 class="h3 mb-0">{{ request.args.get('event_type') or "All events" }}</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        <!-- Chart wrapper -->
+                        <canvas id="chart-page-views" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row  justify-content-md-center">
+        <div class="col-xl-8">
+            <div class="card">
+                <div class="card-header border-0">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h3 class="mb-0">Events</h3>
+                        </div>
+                        <div class="col text-right">
+                            <a href="#!" class="btn btn-sm btn-primary">See all</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush" id="top-events-table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Event</th>
+                                <th scope="col">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for event in template_context.event_data %}
+
+    {{loop.index}}. {{ event["event_type"] }} -- {{ event["total_events_count"] }} <br>
+    <ul>
+        {% for custom_data_key in event["custom_data"] %}
+        <li>{{ custom_data_key }} </li>
+        <ul>
+            {% for custom_data_key_value in event["custom_data"][custom_data_key] %}
+            {% if custom_data_key_value["key_value"] != None %}
+            <li> {{ custom_data_key_value["key_value"] }} - {{ custom_data_key_value["key_value_count"] }}</li>
+            {% endif %}
+            {% endfor %}
+
+        </ul>
+        {% endfor %}
+    </ul>
+
+    {% endfor %}
+
+    {% endblock content%}
+
+    {% block extra_js %}
+    <script>
+        var projectName = {{ template_context.project_id | tojson }};
+        var eventType = {{ request.args.get('event_type') | tojson }};
+        if (!eventType || eventType === 'None') {
+            eventType = null;
+        }
+        var startDateInput = {{ template_context['start_date'].strftime('%m-%d-%Y') | tojson }};
+        var endDateInput = {{ template_context['end_date'].strftime('%m-%d-%Y') | tojson }};
+        var urlFormat = "{{ url_for('organisation.project_events_dashboard', _external=True, workspace=template_context.workspace, project_id=template_context.project_id,
+        start_time = 'START', end_time = 'END', event_type = 'EVENT_TYPE') }}";
+        urlFormat = urlFormat.replace(/&amp;/g, '&');
+    </script>
+    <script src="{{ url_for('static', filename='assets/js/trail/events_dashboard.js')|safe }}"></script>
+    {% endblock extra_js %}
