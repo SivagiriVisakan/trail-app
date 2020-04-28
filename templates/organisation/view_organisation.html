@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  	<meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
+  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+	<title>View Organisation</title>
+</head>
+<body>
+	<h1>Slug - {{ organisation.slug }}</h1>
+	<h2>Organisation Name - {{ organisation.name }}</h2>
+	<h2>Organisation Logo</h2>
+	<img src="{{ url_for('organisation.upload_file',filename=organisation.logo) }}">
+	<h2>Organisation Members</h2>
+	{% for member in organisation.members %}
+	<div class="row">
+		<p style="margin-left: 20px">{{ member }}</p>
+	</div>
+	{% endfor %}
+
+	<button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#myModal">Add Member</button>
+	<div id="myModal" class="modal fade" role="dialog">
+		<div class="modal-dialog"+>
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Add Member</h4>
+				</div>
+				<form role="form" action="{{ url_for('organisation.view_organisation',slug=organisation.slug) }}" method="POST">
+				<div class="modal-body">
+        			<input type="text" name="username" placeholder="username">
+      			</div>
+      			</form>
+      			<div class="modal-footer">
+      				<button type="submit" class="btn btn-primary" data-dismiss="modal">Add</button>
+        			<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+      			</div>
+      		</div>
+		</div>
+	</div>
+	{% include "partials/flashed_messages.html"%}
+</body>
+</html>

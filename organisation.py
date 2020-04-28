@@ -1,7 +1,7 @@
 import json 
 import datetime 
 
-from flask import Blueprint, request, render_template, flash, g, redirect, url_for
+from flask import Blueprint, request, render_template, flash, g, send_from_directory, redirect, url_for
 
 import db
 from utils import check_missing_keys
@@ -10,25 +10,132 @@ from werkzeug.utils import secure_filename
 import os
 import app
 
+
 blueprint = Blueprint('organisation', __name__, url_prefix='/')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
+
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def get_organisation(slug):
+	db_conn = db.get_database_connection()
+	with db_conn.cursor() as cursor:
+		sql = 'SELECT u.username, w.logo, w.name as wname, p.project_id, p.name as pname \
+				 FROM user u LEFT JOIN belongs_to b on u.username = b.username \
+				 	 LEFT JOIN workspace w on b.slug = w.slug LEFT JOIN project p on w.slug = p.slug \
+				 	 	WHERE b.slug=%s';
+		cursor.execute(sql, (slug, ))
+		result = cursor.fetchall()
+
+	return result
+
 
 @blueprint.route('')
 @auth.login_required
 def organisation():
 	#TODO: Do conditional rendering here (or somewhere) based on user's authencation state
 	#		i.e if he is logged in, show workspaces list, else show a landing page.
-	return render_template('organisation/organisation.html', user=g.user)
+	user = g.user
+	username = user["username"]
+
+	response = {}
+
+	db_conn = db.get_database_connection()
+	with db_conn.cursor() as cursor:
+		sql = 'SELECT slug FROM belongs_to WHERE username=%s';
+		cursor.execute(sql, (username, ))
+		records = cursor.fetchall()
+
+	for row in records:
+		if row is not None:
+			response[row["slug"]] = get_organisation(row["slug"])
+	return render_template('organisation/organisation.html', user=user, response=response)
 
 
-@blueprint.route('/<string:slug>')
+@blueprint.route('/uploads/<filename>')
+def upload_file(filename):
+	return send_from_directory(app.app.config['UPLOAD_FOLDER'], filename)
+
+
+@blueprint.route('/<string:slug>',methods=["GET","POST"])
 @auth.login_required
-def view_organisation():
-	return redirect(url_for('organisation/view_organisation.html'))
+def view_organisation(slug):
+
+	user = g.user
+	username = user["username"]
+
+	organisation = {}
+	organisation["slug"] = slug
+
+
+	db_conn = db.get_database_connection()
+	with db_conn.cursor() as cursor:
+		sql = 'SELECT name, logo FROM workspace WHERE slug=%s';
+		cursor.execute(sql, (slug, ))
+		result = cursor.fetchone()
+
+	organisation["logo"] = result["logo"]
+	organisation["name"] = result["name"]
+
+	with db_conn.cursor() as cursor:
+		sql = 'SELECT username FROM belongs_to WHERE slug=%s';
+		cursor.execute(sql, (slug, ))
+		result = cursor.fetchall()
+	_member = []
+	for rows in result:
+		if rows is not None:
+			_member.append(rows["username"])
+	organisation["members"] = _member
+
+	if request.method == "GET":
+		return render_template('organisation/view_organisation.html', user=user, organisation=organisation)	
+
+	elif request.method == "POST":
+		
+		username = request.form.get("username", None)
+		if len(username) > 15:
+			flash("username should not exceed 15 characters","danger")
+			return render_template('organisation/view_organisation.html',user=user,organisation=organisation)
+		if username:
+			_username = db.get_user(username)
+			if _username is not None:
+				db_conn = db.get_database_connection()
+				with db_conn.cursor() as cursor:
+					sql = 'SELECT slug, username FROM belongs_to WHERE username=%s and slug=%s'
+					cursor.execute(sql, (username, slug, ))
+					result = cursor.fetchone()
+				if result is not None:
+					flash("user is already working in the organisation","danger")
+					return render_template('organisation/view_organisation.html', user=user, organisation=organisation)
+				else:
+
+					with db_conn.cursor() as cursor:
+						cursor.execute("INSERT INTO belongs_to(username,slug) Values (%s, %s)", (username,slug))
+						db_conn.commit()
+					with db_conn.cursor() as cursor:
+						sql = 'SELECT username FROM belongs_to WHERE slug=%s';
+						cursor.execute(sql, (slug, ))
+						result = cursor.fetchall()
+					_member = []
+					for rows in result:
+						if rows is not None:
+							_member.append(rows["username"])
+					organisation["members"] = _member
+					return render_template('organisation/view_organisation.html',user=user,organisation=organisation)
+
+
+			else:
+				flash("username does not exist","danger")
+				return render_template('organisation/view_organisation.html', user=user, organisation=organisation)
+
+		else:
+			flash("Enter username","danger")
+			return render_template('organisation/view_organisation.html', user=user, organisation=organisation)
+
+	
 
 def get_slug(slug):
 	db_conn = db.get_database_connection()

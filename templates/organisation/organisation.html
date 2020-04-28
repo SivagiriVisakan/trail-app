@@ -34,60 +34,37 @@
             </div>
           </div>
         </div>
+        <form method="GET" role="form" action="{{ url_for('organisation.organisation') }}">
+        {% for keys, value in response.items() %}
         <div class="card-body">
           <div class="card">
             <div class="card-header">
-              <h2 class="text-primary"><a href="#">Workspace Name</a>
+              <h2 class="text-primary"><a href="{{ url_for('organisation.view_organisation',slug= keys) }}">{{ keys }}</a>
                 <button type="button" class="btn btn-sm btn-outline-primary ml-3" data-toggle="tooltip"
                   data-placement="bottom" title="Create new project">
                   <i class="fas fa-plus"></i>
                 </button></h2>
-
             </div>
-
+            {% for item in value %}
+            {% for key, values in item.items() %}
+            {% if key=="project_id" %}
             <div class="card-body">
               <ul class="list-group list-group-flush">
-                <li class="list-group-item"><a href="#" class="text-underline text-default">Project 1</a></li>
-                <li class="list-group-item"><a href="#" class="text-underline text-default">Project 1</a></li>
-
+                <li class="list-group-item"><a href="#" class="text-underline text-default">{{ values }}</a></li>
               </ul>
             </div>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
           </div>
-
+          {% endfor %}
           <div class="card">
             <div class="card-header">
-              <h2 class="text-primary"><a href="#">Workspace Name</a>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-3" data-toggle="tooltip"
-                  data-placement="bottom" title="Create new project">
-                  <i class="fas fa-plus"></i>
-                </button></h2>
-            </div>
-
-            <div class="card-body">
-              <ul class="list-group list-group-flush">
-                <li class="list-group-item"><a href="#" class="text-underline text-default">Project 1</a></li>
-                <li class="list-group-item"><a href="#" class="text-underline text-default">Project 1</a></li>
-              </ul>
+              <h2 class="text-primary"><a href="#">Create new organisation</a>    
             </div>
           </div>
-
-          <div class="card">
-            <div class="card-header">
-              <h2 class="text-primary"><a href="#">Workspace Name</a>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-3" data-toggle="tooltip"
-                  data-placement="bottom" title="Create new project">
-                  <i class="fas fa-plus"></i>
-                </button></h2>
-            </div>
-            <div class="card-body">
-              <ul class="list-group list-group-flush">
-                <li class="list-group-item"><a href="#" class="text-underline text-default">Project 1</a></li>
-                <li class="list-group-item"><a href="#" class="text-underline text-default">Project 1</a></li>
-              </ul>
-            </div>
-          </div>
-
         </div>
+      </form>
       </div>
     </div>
   </div>
