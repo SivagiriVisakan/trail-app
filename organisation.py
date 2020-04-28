@@ -96,4 +96,10 @@ def new_organisation():
 @blueprint.route('/<string:workspace>/<string:project_id>/dashboard/')
 @auth.login_required
 def project_dashboard(workspace, project_id):
-    return render_template('projects/home_dashboard.html', template_context={"project_id": project_id})
+    return render_template('projects/home_dashboard.html', template_context={"project_id": project_id, "workspace": workspace})
+
+# TODO: Restrict access to projects based on user
+@blueprint.route('/<string:workspace>/<string:project_id>/events/')
+@auth.login_required
+def project_events_dashboard(workspace, project_id):
+    return render_template('projects/events_dashboard.html', template_context={"project_id": project_id, "workspace": workspace})
