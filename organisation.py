@@ -39,7 +39,7 @@ def get_slug(slug):
 		return result
 
 
-@blueprint.route('/organisation/new',methods=["GET","POST"])
+@blueprint.route('/new',methods=["GET","POST"])
 @auth.login_required
 def new_organisation():
 	if request.method == "GET":

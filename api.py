@@ -7,7 +7,7 @@ from flask import Blueprint, request
 import db
 from utils import check_missing_keys
 
-blueprint = Blueprint('events', __name__, url_prefix='/events')
+blueprint = Blueprint('api', __name__, url_prefix='/api')
 
 # An endpoint to list all the events
 # TODO: Restrict access based on user and project.
@@ -54,7 +54,7 @@ def get_events(project_id:str, event_type:str = None, start_time:datetime.dateti
 
 # TODO: Restrict access to require some kind of authorization
 
-@blueprint.route('/api/v1/list-events/<string:project>/', methods=["GET"])
+@blueprint.route('/v1/list-events/<string:project>/', methods=["GET"])
 def list_events(project):
     """
     This endpoint gets the events associated with the given `project`.
@@ -93,7 +93,7 @@ def list_events(project):
 
     
 
-@blueprint.route('/api/v1/get-metrics/<string:project>/', methods=['GET'])
+@blueprint.route('/v1/get-metrics/<string:project>/', methods=['GET'])
 def get_metrics(project):
 
     """
@@ -222,7 +222,7 @@ def add_cors_header(response):
     return response
 
 
-@blueprint.route('/register-new', methods=["POST"])
+@blueprint.route('/v1/register-new', methods=["POST"])
 def register_new_event():
     """
     This endpoint registers a new event for a project.

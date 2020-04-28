@@ -2,7 +2,7 @@ from flask import Flask
 from flask_bcrypt import Bcrypt
 
 import auth
-import events
+import api
 import config
 import db
 import organisation
@@ -14,7 +14,7 @@ UPLOAD_FOLDER = 'static/uploads'
 def register_blueprints(app):
     """Register Flask blueprints."""
     app.register_blueprint(auth.blueprint)
-    app.register_blueprint(events.blueprint)
+    app.register_blueprint(api.blueprint)
     app.register_blueprint(organisation.blueprint)
 
 def register_extensions(app):
