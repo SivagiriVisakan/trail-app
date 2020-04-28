@@ -38,7 +38,7 @@ function addStylesForDashboardCard(element, today, yesterday) {
 
 window.addEventListener('DOMContentLoaded', () => {
   $.ajax({
-    url: '/events/api/v1/get-metrics/' + window.projectName,
+    url: '/api/v1/get-metrics/' + window.projectName,
     data: {
       "start_time": startDateTimestamp,
       "end_time": todayTimestamp,
