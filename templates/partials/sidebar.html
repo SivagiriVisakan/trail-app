@@ -1,6 +1,6 @@
 {% set side_bar = [
   
-  (url_for('organisation.project_dashboard', **template_context), 'ni ni-tv-2 text-primary', 'Dashboard'),
+  (url_for('organisation.project_dashboard', project_id=template_context["project_id"], workspace=template_context["workspace"]), 'ni ni-tv-2 text-primary', 'Dashboard'),
   (url_for('organisation.project_events_dashboard', **template_context), 'fa fa-layer-group text-primary', 'Events'),
 ] -%}
 <!-- Sidenav -->
