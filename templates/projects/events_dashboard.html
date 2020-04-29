@@ -130,13 +130,56 @@
                 <div class="card-header border-0">
                     <div class="row align-items-center">
                         <div class="col">
-                            <h3 class="mb-0">Events</h3>
-                        </div>
-                        <div class="col text-right">
-                            <a href="#!" class="btn btn-sm btn-primary">See all</a>
+                            <h3 class="mb-0">
+                                {% if request.args.get('event_type') %}
+                                Stats for {{ request.args.get('event_type') }}
+                                {% else %}
+                                All events stats 
+
+                                {% endif %}
+                            </h3>
                         </div>
                     </div>
                 </div>
+                {% if request.args.get('event_type') %}
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Custom Data Key</th>
+                                <th scope="col">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in template_context.event_data %}
+                            <tr>
+                                <td>{{ event["event_type"] }}</td>
+                                <td>{{ event["total_events_count"] }}</td>
+                            </tr>
+                                {% for custom_data_key in event["custom_data"] %}
+                                <tr>
+                                    <td class="display-4">{{ custom_data_key }} </td>
+                                    <td></td>
+                                </tr>
+
+                                {% for custom_data_key_value in event["custom_data"][custom_data_key] %}
+                                {% if custom_data_key_value["key_value"] != None %}
+                                <tr>
+                                    <td><span class="pl-3">{{ custom_data_key_value["key_value"] }}</span></td>
+                                    <td>{{ custom_data_key_value["key_value_count"] }}</td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+
+                            {% endfor %}
+
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+
+                {% else %}
                 <div class="table-responsive">
                     <table class="table align-items-center table-flush" id="top-events-table">
                         <thead class="thead-light">
@@ -146,31 +189,60 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% for event in template_context.event_data %}
+                            <tr>
+                                <td>{{ event["event_type"] }}</td>
+                                <td>{{ event["total_events_count"] }}</td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    {% for event in template_context.event_data %}
+{% if request.args.get('event_type') %}
+    
+<div class="container-fluid">
+    <div class="row  justify-content-md-center">
+      <div class="col-xl-8">
+        <div class="card">
+          <div class="card-header border-0">
+            <div class="row align-items-center">
+              <div class="col">
+                <h3 class="mb-0">Pagewise stats</h3>
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-items-center table-flush" id="top-events-table">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">Page</th>
+                  <th scope="col">Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for event in template_context.event_data %}
+                    {% for page in event["page_wise"] %}
+                    <tr>
+                        <td class="display-4">{{ page["page_url"] }}</td>
+                        <td>{{ page["total_events_count"] }}</td>
+                    </tr>
 
-    {{loop.index}}. {{ event["event_type"] }} -- {{ event["total_events_count"] }} <br>
-    <ul>
-        {% for custom_data_key in event["custom_data"] %}
-        <li>{{ custom_data_key }} </li>
-        <ul>
-            {% for custom_data_key_value in event["custom_data"][custom_data_key] %}
-            {% if custom_data_key_value["key_value"] != None %}
-            <li> {{ custom_data_key_value["key_value"] }} - {{ custom_data_key_value["key_value_count"] }}</li>
-            {% endif %}
-            {% endfor %}
+                {% endfor %}
 
-        </ul>
-        {% endfor %}
-    </ul>
+                {% endfor %}
 
-    {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
     {% endblock content%}
 
