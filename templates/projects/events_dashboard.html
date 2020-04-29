@@ -70,10 +70,10 @@
             </div>
 
             <!-- Card stats -->
-            <div class="row">
+            <!-- <div class="row">
                 <div class="col-xl-3 col-md-6">
                     <div class="card card-stats">
-                        <!-- Card body -->
+                        <!-- Card body
                         <div class="card-body">
                             <div class="row">
                                 <div class="col">
@@ -94,7 +94,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 </div>
@@ -134,7 +134,7 @@
                                 {% if request.args.get('event_type') %}
                                 Stats for {{ request.args.get('event_type') }}
                                 {% else %}
-                                All events stats 
+                                All events stats
 
                                 {% endif %}
                             </h3>
@@ -156,20 +156,20 @@
                                 <td>{{ event["event_type"] }}</td>
                                 <td>{{ event["total_events_count"] }}</td>
                             </tr>
-                                {% for custom_data_key in event["custom_data"] %}
-                                <tr>
-                                    <td class="display-4">{{ custom_data_key }} </td>
-                                    <td></td>
-                                </tr>
+                            {% for custom_data_key in event["custom_data"] %}
+                            <tr>
+                                <td class="display-4">{{ custom_data_key }} </td>
+                                <td></td>
+                            </tr>
 
-                                {% for custom_data_key_value in event["custom_data"][custom_data_key] %}
-                                {% if custom_data_key_value["key_value"] != None %}
-                                <tr>
-                                    <td><span class="pl-3">{{ custom_data_key_value["key_value"] }}</span></td>
-                                    <td>{{ custom_data_key_value["key_value_count"] }}</td>
-                                </tr>
-                                {% endif %}
-                                {% endfor %}
+                            {% for custom_data_key_value in event["custom_data"][custom_data_key] %}
+                            {% if custom_data_key_value["key_value"] != None %}
+                            <tr>
+                                <td><span class="pl-3">{{ custom_data_key_value["key_value"] }}</span></td>
+                                <td>{{ custom_data_key_value["key_value_count"] }}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
 
                             {% endfor %}
 
@@ -203,61 +203,61 @@
         </div>
     </div>
 
-{% if request.args.get('event_type') %}
-    
-<div class="container-fluid">
-    <div class="row  justify-content-md-center">
-      <div class="col-xl-8">
-        <div class="card">
-          <div class="card-header border-0">
-            <div class="row align-items-center">
-              <div class="col">
-                <h3 class="mb-0">Pagewise stats</h3>
-              </div>
+    {% if request.args.get('event_type') %}
+
+    <div class="container-fluid">
+        <div class="row  justify-content-md-center">
+            <div class="col-xl-8">
+                <div class="card">
+                    <div class="card-header border-0">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h3 class="mb-0">Pagewise stats</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-items-center table-flush">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">Page</th>
+                                    <th scope="col">Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in template_context.event_data %}
+                                {% for page in event["page_wise"] %}
+                                <tr>
+                                    <td class="display-4">{{ page["page_url"] }}</td>
+                                    <td>{{ page["total_events_count"] }}</td>
+                                </tr>
+
+                                {% endfor %}
+
+                                {% endfor %}
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="table-responsive">
-            <table class="table align-items-center table-flush" id="top-events-table">
-              <thead class="thead-light">
-                <tr>
-                  <th scope="col">Page</th>
-                  <th scope="col">Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for event in template_context.event_data %}
-                    {% for page in event["page_wise"] %}
-                    <tr>
-                        <td class="display-4">{{ page["page_url"] }}</td>
-                        <td>{{ page["total_events_count"] }}</td>
-                    </tr>
-
-                {% endfor %}
-
-                {% endfor %}
-
-              </tbody>
-            </table>
-          </div>
         </div>
-      </div>
-    </div>
-    {% endif %}
+        {% endif %}
 
-    {% endblock content%}
+        {% endblock content%}
 
-    {% block extra_js %}
-    <script>
-        var projectName = {{ template_context.project_id | tojson }};
-        var eventType = {{ request.args.get('event_type') | tojson }};
-        if (!eventType || eventType === 'None') {
-            eventType = null;
-        }
-        var startDateInput = {{ template_context['start_date'].strftime('%m-%d-%Y') | tojson }};
-        var endDateInput = {{ template_context['end_date'].strftime('%m-%d-%Y') | tojson }};
-        var urlFormat = "{{ url_for('organisation.project_events_dashboard', _external=True, workspace=template_context.workspace, project_id=template_context.project_id,
-        start_time = 'START', end_time = 'END', event_type = 'EVENT_TYPE') }}";
-        urlFormat = urlFormat.replace(/&amp;/g, '&');
-    </script>
-    <script src="{{ url_for('static', filename='assets/js/trail/events_dashboard.js')|safe }}"></script>
-    {% endblock extra_js %}
+        {% block extra_js %}
+        <script>
+            var projectName = {{ template_context.project_id | tojson }};
+            var eventType = {{ request.args.get('event_type') | tojson }};
+            if (!eventType || eventType === 'None') {
+                eventType = null;
+            }
+            var startDateInput = {{ template_context['start_date'].strftime('%m-%d-%Y') | tojson }};
+            var endDateInput = {{ template_context['end_date'].strftime('%m-%d-%Y') | tojson }};
+            var urlFormat = "{{ url_for('organisation.project_events_dashboard', _external=True, workspace=template_context.workspace, project_id=template_context.project_id,
+            start_time = 'START', end_time = 'END', event_type = 'EVENT_TYPE') }}";
+            urlFormat = urlFormat.replace(/&amp;/g, '&');
+        </script>
+        <script src="{{ url_for('static', filename='assets/js/trail/events_dashboard.js')|safe }}"></script>
+        {% endblock extra_js %}

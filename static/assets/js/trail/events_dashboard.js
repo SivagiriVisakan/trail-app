@@ -56,30 +56,13 @@ window.addEventListener('DOMContentLoaded', () => {
                 el.hidden = true;
             })
 
-            $('#eventsTodayText').html(todayData["total_events"]);
+            // $('#eventsTodayText').html(todayData["total_events"]);
 
             metrics = data;
             drawChart();
-
-            populateEventsTable(metrics[todayDateString]["category_wise"])
         }
     });
 });
-
-function populateEventsTable(eventsData) {
-    window.aa = eventsData;
-    let table = document.getElementById("top-events-table");
-    for (let event in eventsData) {
-        let row = table.insertRow();
-        let cell = row.insertCell();
-        let text = document.createTextNode(event);
-        cell.appendChild(text);
-
-        cell = row.insertCell();
-        text = document.createTextNode(eventsData[event]);
-        cell.appendChild(text);
-    }
-}
 
 function extractEventDataForChart(data, type) {
     var config = {}
@@ -124,7 +107,6 @@ function handleRefreshClick() {
     url = url.replace('END', endDateTimestamp.toString())
     url = url.replace('EVENT_TYPE', eventType ? eventType.toString() : '')
 
-    alert(url);
     window.location.href = url;
 }
 
