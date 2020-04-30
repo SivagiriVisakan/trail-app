@@ -50,7 +50,7 @@
             {% if key=="project_id" %}
             <div class="card-body">
               <ul class="list-group list-group-flush">
-                <li class="list-group-item"><a href="#" class="text-underline text-default">{{ values }}</a></li>
+                <li class="list-group-item"><a href="{{ url_for('organisation.project_dashboard', workspace=keys,project_id=vlues) }}" class="text-underline text-default">{{ values }}</a></li>
               </ul>
             </div>
             {% endif %}
