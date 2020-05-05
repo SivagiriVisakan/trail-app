@@ -42,7 +42,7 @@
               <h2 class="text-primary"><a href="{{ url_for('organisation.view_organisation',slug= keys) }}">{{ keys }}</a>
                 <button type="button" class="btn btn-sm btn-outline-primary ml-3" data-toggle="tooltip"
                   data-placement="bottom" title="Create new project">
-                  <i class="fas fa-plus"></i>
+                  <a href="{{ url_for('organisation.new_project', slug=keys) }}"><i class="fas fa-plus"></i></a>
                 </button></h2>
             </div>
             {% for item in value %}
@@ -50,7 +50,7 @@
             {% if key=="project_id" %}
             <div class="card-body">
               <ul class="list-group list-group-flush">
-                <li class="list-group-item"><a href="{{ url_for('organisation.project_dashboard', workspace=keys,project_id=vlues) }}" class="text-underline text-default">{{ values }}</a></li>
+                <li class="list-group-item"><a href="{{ url_for('organisation.project_dashboard', workspace=keys,project_id=values) }}" class="text-underline text-default">{{ values }}</a></li>
               </ul>
             </div>
             {% endif %}
@@ -60,7 +60,7 @@
           {% endfor %}
           <div class="card">
             <div class="card-header">
-              <h2 class="text-primary"><a href="#">Create new organisation</a>    
+              <h2 class="text-primary"><a href="{{ url_for('organisation.new_organisation') }}">Create new organisation</a>    
             </div>
           </div>
         </div>
