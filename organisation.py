@@ -10,53 +10,54 @@ import auth
 from werkzeug.utils import secure_filename
 import os
 import app
+import uuid
 
 
 blueprint = Blueprint('organisation', __name__, url_prefix='/')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-def permission_required(f):
-	@wraps(f)
-	def wrapper(workspace, project_id, *args, **kwargs):
-		result = get_slug(workspace)
-		if result is not None:
-			user = g.user
-			username = user["username"]
-			db_conn = db.get_database_connection()
-			with db_conn.cursor() as cursor:
-				sql = 'SELECT username, slug FROM belongs_to WHERE username=%s and slug=%s'
-				cursor.execute(sql, (username, workspace))
-				records = cursor.fetchone()
-			if records is not None:
-				with db_conn.cursor() as cursor:
-					sql = 'SELECT slug, project_id FROM project WHERE slug=%s and project_id=%s'
-					cursor.execute(sql, (workspace, project_id))
-					fetch = cursor.fetchone()
-				if fetch is not None:
-					f(*args, **kwargs)
-				else:
-					return "slug do not have this project"
-			else:
-				return "user is not in the working in the workspace"				
+# def permission_required(f):
+# 	@wraps(f)
+# 	def wrapper(workspace, project_id, *args, **kwargs):
+# 		result = get_slug(workspace)
+# 		if result is not None:
+# 			user = g.user
+# 			username = user["username"]
+# 			db_conn = db.get_database_connection()
+# 			with db_conn.cursor() as cursor:
+# 				sql = 'SELECT username, slug FROM belongs_to WHERE username=%s and slug=%s'
+# 				cursor.execute(sql, (username, workspace))
+# 				records = cursor.fetchone()
+# 			if records is not None:
+# 				with db_conn.cursor() as cursor:
+# 					sql = 'SELECT slug, project_id FROM project WHERE slug=%s and project_id=%s'
+# 					cursor.execute(sql, (workspace, project_id))
+# 					fetch = cursor.fetchone()
+# 				if fetch is not None:
+# 					f(*args, **kwargs)
+# 				else:
+# 					return "slug do not have this project"
+# 			else:
+# 				return "user is not in the working in the workspace"				
 
-		else:
-			return "workspace not found...404 page not found"
-	return wrapper
+# 		else:
+# 			return "workspace not found...404 page not found"
+# 	return wrapper
 
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def get_organisation(slug):
+def get_organisation(slug, username):
 	db_conn = db.get_database_connection()
 	with db_conn.cursor() as cursor:
 		sql = 'SELECT u.username, w.logo, w.name as wname, p.project_id, p.name as pname \
 				 FROM user u LEFT JOIN belongs_to b on u.username = b.username \
 				 	 LEFT JOIN workspace w on b.slug = w.slug LEFT JOIN project p on w.slug = p.slug \
-				 	 	WHERE b.slug=%s';
-		cursor.execute(sql, (slug, ))
+				 	 	WHERE u.username=%s and b.slug=%s';
+		cursor.execute(sql, (username, slug, ))
 		result = cursor.fetchall()
 
 	return result
@@ -80,7 +81,8 @@ def organisation():
 
 	for row in records:
 		if row is not None:
-			response[row["slug"]] = get_organisation(row["slug"])
+			response[row["slug"]] = get_organisation(row["slug"], username)
+	# return response
 	return render_template('organisation/organisation.html', user=user, response=response)
 
 
@@ -174,6 +176,83 @@ def get_slug(slug):
 		result = cursor.fetchone()
 		return result
 
+@blueprint.route('/<string:slug>/project/<string:project_id>', methods=['GET','POST'])
+@auth.login_required
+def view_project(slug, project_id):
+	return "Hello"
+
+@blueprint.route('/<string:slug>/project/new', methods=['GET','POST'])
+@auth.login_required
+def new_project(slug):
+	if request.method == "GET":
+		return render_template('organisation/new_project.html',slug=slug)
+
+	elif request.method == "POST":
+
+		project_id = request.form.get("project_id", None)
+		if len(project_id) > 15:
+			flash("project_id should not exceed 15 characters", "danger")
+			return render_template('organisation/new_project.html')
+
+		if project_id == "new" or project_id == "project":
+			flash("project_id is not applicable", "danger")
+			return render_template('organisation/new_project.html')
+
+		name = request.form.get("name", None)
+		if len(name) > 15:
+			flash("name should not exceed 15 characters", "danger")
+			return render_template('organisation/new_project.html')
+
+		description = request.form.get("description", None)
+
+		if project_id and name and description:
+			db_conn = db.get_database_connection()
+			with db_conn.cursor() as cursor:
+				sql = 'SELECT `slug`, `project_id` FROM `project` WHERE `slug`=%s and `project_id`=%s'
+				cursor.execute(sql, (slug, project_id, ))
+				result = cursor.fetchone()
+
+			if result is not None:
+				flash("project already exist in the workspace", "danger")
+				return render_template('organisation/new_project.html')
+
+			with db_conn.cursor() as cursor:
+				sql = 'SELECT `project_id` FROM `project` WHERE `project_id`=%s'
+				cursor.execute(sql, (project_id, ))
+				result = cursor.fetchone()
+
+			if result is not None:
+				flash("project_id already exist", "danger")
+				return render_template('organisation/new_project.html')
+
+			while True:
+				api_key = uuid.uuid4()
+				api_key = api_key.hex
+				with db_conn.cursor() as cursor:
+					sql = 'SELECT `api_key` FROM `project` WHERE `api_key`=%s'
+					cursor.execute(sql, (api_key, ))
+					result = cursor.fetchone()
+				if result is None:
+					break
+
+			with db_conn.cursor() as cursor:
+				cursor.execute("INSERT INTO `project`(`slug`,`project_id`,`name`,`description`,`api_key`) \
+					Values (%s, %s, %s, %s, %s)", (slug, project_id, name, description, api_key))
+				db_conn.commit()
+				return redirect(url_for('organisation.view_project',slug=slug,project_id=project_id))
+
+		else:
+			if not project_id:
+				flash("Enter project_id", "danger")
+			if not name:
+				flash("Enter name", "danger")
+			if not description:
+				flash("Enter description", "danger")
+
+			return render_template('organisation/new_project.html')
+
+
+
 
 @blueprint.route('/new',methods=["GET","POST"])
 @auth.login_required
@@ -212,7 +291,7 @@ def new_organisation():
 					with db_conn.cursor() as cursor:
 						cursor.execute("INSERT INTO `workspace`(`slug`,`name`,`logo`) Values (%s, %s, %s)", (slug, name, filename))
 						db_conn.commit()
-						return redirect(url_for('auth.my_details'))
+						return redirect(url_for('organisation.organisation'))
 				else:
 					flash("logo is not a image", "danger")
 					return render_template('organisation/new_organisation.html')
@@ -231,7 +310,7 @@ def new_organisation():
 @blueprint.route('/<string:workspace>/<string:project_id>/')
 @blueprint.route('/<string:workspace>/<string:project_id>/dashboard/')
 @auth.login_required
-@permission_required(workspace,project_id)
+# @permission_required(workspace,project_id)
 def project_dashboard(workspace, project_id):
     return render_template('projects/home_dashboard.html', template_context={"project_id": project_id, "workspace": workspace})
 
