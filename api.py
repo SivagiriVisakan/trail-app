@@ -136,11 +136,11 @@ def get_metrics(project):
     try:
         if "start_time" in request.args:
             timestamp = float(request.args["start_time"])
-            start_time = datetime.datetime.fromtimestamp(timestamp)
+            start_time = datetime.datetime.utcfromtimestamp(timestamp)
 
         if "end_time" in request.args:
             timestamp = float(request.args["end_time"])
-            end_time = datetime.datetime.fromtimestamp(timestamp)
+            end_time = datetime.datetime.utcfromtimestamp(timestamp)
     except:
         response["error"] = "Invalid time parameter"
         return response, 400
