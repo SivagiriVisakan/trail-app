@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>View Project</title>
+</head>
+<body>
+	<h1>{{ project.project_id }}</h1>
+	<h2>{{ project.name }}</h2>
+	<h2>{{ project.description }}</h2>
+	<h2>{{ project.api_key }}</h2>
+	<a href="{{ url_for('organisation.edit_project', slug=slug, project_id=project.project_id)}}">Edit Project</a>
+</body>
+</html>
