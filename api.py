@@ -137,10 +137,13 @@ def get_metrics(project):
         if "start_time" in request.args:
             timestamp = float(request.args["start_time"])
             start_time = datetime.datetime.utcfromtimestamp(timestamp)
+            start_time += datetime.timedelta(days=1)
 
         if "end_time" in request.args:
             timestamp = float(request.args["end_time"])
             end_time = datetime.datetime.utcfromtimestamp(timestamp)
+            end_time += datetime.timedelta(days=1)
+
     except:
         response["error"] = "Invalid time parameter"
         return response, 400
