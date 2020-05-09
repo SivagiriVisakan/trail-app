@@ -1,0 +1,54 @@
+{% extends "layouts/base_layout.html" %}
+
+{% block title %}Edit Project - Trail{% endblock %}
+
+{% block content %}
+	{% include "partials/signed_in_top_nav.html" %}
+
+	<div class="main-content">
+  		<div class="header pb-6 d-flex align-items-center" style="min-height: 500px; background: #566be8">
+    		<!-- Header container -->
+    		<div class="container-fluid d-flex align-items-center">
+      			<div class="row">
+        			<div class="col-lg">
+          				<h2 class="display-3 text-white">Edit your Project</h2>
+          				<h3 class="text-white mt-0  mb-5 font-weight-normal">{{ project_id }}</h3>
+        			</div>
+      			</div>
+    		</div>
+  		</div>
+  		<div class="container mt-5 pb-5">
+    		<div class="row justify-content-center">
+      			<div class="col-lg-6 col-md-8">
+        			<div class="card bg-secondary border-0">
+          				<div class="card-body px-lg-5 py-lg-5">
+            				{% include "partials/flashed_messages.html"%}
+            				<form method="POST" role="form" action="{{ url_for('organisation.edit_project', slug=slug, project_id=project_id) }}"s>
+
+              					<div class="form-group">
+                					<label for="name-input">Project Name</label>
+                					<input class="form-control" id="name-input" value="{{ response.name }}" maxlength="15" placeholder="Name" name="name" maxlength="15" type="text">
+              					</div>
+              					<div class="form-group">
+              						<label for="description-input">Description</label>
+              						<input class="form-control" id="description-input" value="{{ response.description }}"placeholder="Description" type="text" name="description">
+              					</div>
+                        <div class="form-group">
+                          <label for="api_key-input">API_key</label>
+                          <input class="form-control" id="api_key-input" value="{{ response.api_key }}" placeholder="api_key" name="api_key" type="text">
+                        </div>
+                        <div>
+                          <button type="button" onclick="window.location.href='{{ url_for('organisation.get_api', project_id=project_id) }}';"> Refresh Api</button>
+                        </div>
+              					<div class="text-center">
+                					<input type="submit" class="btn btn-primary mt-4" value="Edit Project">
+              					</div>
+
+            				</form>
+          				</div>
+        			</div>
+      			</div>
+    		</div>
+  		</div>
+	</div>
+{% endblock content %}
