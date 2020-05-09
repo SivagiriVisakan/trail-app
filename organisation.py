@@ -17,33 +17,33 @@ blueprint = Blueprint('organisation', __name__, url_prefix='/')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-# def permission_required(f):
-# 	@wraps(f)
-# 	def wrapper(workspace, project_id, *args, **kwargs):
-# 		result = get_slug(workspace)
-# 		if result is not None:
-# 			user = g.user
-# 			username = user["username"]
-# 			db_conn = db.get_database_connection()
-# 			with db_conn.cursor() as cursor:
-# 				sql = 'SELECT username, slug FROM belongs_to WHERE username=%s and slug=%s'
-# 				cursor.execute(sql, (username, workspace))
-# 				records = cursor.fetchone()
-# 			if records is not None:
-# 				with db_conn.cursor() as cursor:
-# 					sql = 'SELECT slug, project_id FROM project WHERE slug=%s and project_id=%s'
-# 					cursor.execute(sql, (workspace, project_id))
-# 					fetch = cursor.fetchone()
-# 				if fetch is not None:
-# 					f(*args, **kwargs)
-# 				else:
-# 					return "slug do not have this project"
-# 			else:
-# 				return "user is not in the working in the workspace"				
+def permission_required(f):
+	@wraps(f)
+	def wrapper(workspace, project_id, *args, **kwargs):
+		result = get_slug(workspace)
+		if result is not None:
+			user = g.user
+			username = user["username"]
+			db_conn = db.get_database_connection()
+			with db_conn.cursor() as cursor:
+				sql = 'SELECT username, slug FROM belongs_to WHERE username=%s and slug=%s'
+				cursor.execute(sql, (username, workspace))
+				records = cursor.fetchone()
+			if records is not None:
+				with db_conn.cursor() as cursor:
+					sql = 'SELECT slug, project_id FROM project WHERE slug=%s and project_id=%s'
+					cursor.execute(sql, (workspace, project_id))
+					fetch = cursor.fetchone()
+				if fetch is not None:
+					f(*args, **kwargs)
+				else:
+					return "slug do not have this project"
+			else:
+				return "user is not in the working in the workspace"				
 
-# 		else:
-# 			return "workspace not found...404 page not found"
-# 	return wrapper
+		else:
+			return "workspace not found...404 page not found"
+	return wrapper
 
 
 def allowed_file(filename):
@@ -63,7 +63,7 @@ def get_organisation(slug, username):
 	return result
 
 
-@blueprint.route('')
+@blueprint.route('', methods=['GET'])
 @auth.login_required
 def organisation():
 	#TODO: Do conditional rendering here (or somewhere) based on user's authencation state
@@ -79,11 +79,15 @@ def organisation():
 		cursor.execute(sql, (username, ))
 		records = cursor.fetchall()
 
+	if records is None:
+		empty = "True"
+	else:
+		empty = "False"
+
 	for row in records:
 		if row is not None:
 			response[row["slug"]] = get_organisation(row["slug"], username)
-	# return response
-	return render_template('organisation/organisation.html', user=user, response=response)
+	return render_template('organisation/organisation.html', user=user, response=response, empty=empty)
 
 
 @blueprint.route('/uploads/<filename>')
@@ -144,7 +148,7 @@ def view_organisation(slug):
 				else:
 
 					with db_conn.cursor() as cursor:
-						cursor.execute("INSERT INTO belongs_to(username,slug) Values (%s, %s)", (username,slug))
+						cursor.execute("INSERT INTO belongs_to(username,slug,role) Values (%s, %s, %s)", (username,slug,"Member"))
 						db_conn.commit()
 					with db_conn.cursor() as cursor:
 						sql = 'SELECT username FROM belongs_to WHERE slug=%s';
@@ -179,7 +183,69 @@ def get_slug(slug):
 @blueprint.route('/<string:slug>/project/<string:project_id>', methods=['GET','POST'])
 @auth.login_required
 def view_project(slug, project_id):
-	return "Hello"
+
+
+	if request.method == "GET":
+		db_conn = db.get_database_connection()
+		with db_conn.cursor() as cursor:
+			sql = 'SELECT `event_id` FROM `web_event` WHERE `project_id`=%s'
+			cursor.execute(sql, (project_id, ))
+			result = cursor.fetchone()
+		if result is not None:
+			return redirect(url_for('organisation.project_dashboard',workspace=slug, project_id=project_id))
+
+		with db_conn.cursor() as cursor:
+			sql = 'SELECT * FROM `project` WHERE `slug`=%s and `project_id`=%s'
+			cursor.execute(sql, (slug, project_id, ))
+			result = cursor.fetchone()
+			return render_template('organisation/view_project.html', slug=slug, project=result) 
+
+@blueprint.route('/<string:slug>/project/<string:project_id>/edit',methods=['GET', 'POST'])
+@auth.login_required
+def edit_project(slug, project_id):
+
+	user = g.user
+	username = user["username"]
+
+	db_conn = db.get_database_connection()
+
+	with db_conn.cursor() as cursor:
+		sql = 'SELECT * from `project` WHERE `project_id`=%s'
+		cursor.execute(sql, (project_id, ))
+		response = cursor.fetchone()
+
+	if request.method == "GET":
+		with db_conn.cursor() as cursor:
+			sql = 'SELECT `role` from `belongs_to` WHERE `username`=%s and `slug`=%s'
+			cursor.execute(sql, (username, slug, ))
+			result = cursor.fetchone()
+
+		if result["role"] == "Admin":
+			return render_template('organisation/edit_project.html', slug=slug, project_id=project_id, response=response)
+		else:
+			return "Sorry you don't have edit access"
+
+	elif request.method == "POST":
+		name = request.form.get("name", None)
+		description = request.form.get("description", None)
+		api_key = request.form.get("api_key", None)
+
+		if name and description and api_key:
+			with db_conn.cursor() as cursor:
+				sql = 'UPDATE `project` SET `name`=%s, `description`=%s, `api_key`=%s \
+					WHERE	`project`.`project_id`=%s'
+				cursor.execute(sql, (name, description, api_key, project_id, ))
+			return redirect(url_for('organisation.view_project',slug=slug,project_id=project_id))
+
+		else:
+			if not name:
+				flash("Enter project name", "danger")
+			if not description:
+				flash("Enter description", "danger")
+			if not api_key:
+				flash("refresh api-key", "danger")
+			return render_template('organisation/edit_project.html')
+
 
 @blueprint.route('/<string:slug>/project/new', methods=['GET','POST'])
 @auth.login_required
@@ -252,11 +318,32 @@ def new_project(slug):
 			return render_template('organisation/new_project.html')
 
 
+@blueprint.route('/get-api/<string:project_id>', methods=["GET"])
+@auth.login_required
+def get_api(project_id):
+	if request.method == "GET":
+		response = {}
+		db_conn = db.get_database_connection()
+		while True:
+			api_key = uuid.uuid4()
+			api_key = api_key.hex
+			with db_conn.cursor() as cursor:
+				sql = 'SELECT `api_key` FROM `project` WHERE `api_key`=%s'
+				cursor.execute(sql, (api_key, ))
+				result = cursor.fetchone()
+			if result is None:
+				break
+		response["api_key"] = api_key
+		return response
 
 
 @blueprint.route('/new',methods=["GET","POST"])
 @auth.login_required
 def new_organisation():
+
+	user = g.user
+	username = user["username"]
+
 	if request.method == "GET":
 		return render_template('organisation/new_organisation.html')
 
@@ -278,6 +365,8 @@ def new_organisation():
 
 		logo = request.files['logo']
 
+		role = "Admin"
+
 		if slug and name and logo.filename:
 			_slug = get_slug(slug)
 			if _slug is not None:
@@ -290,6 +379,9 @@ def new_organisation():
 					db_conn = db.get_database_connection()
 					with db_conn.cursor() as cursor:
 						cursor.execute("INSERT INTO `workspace`(`slug`,`name`,`logo`) Values (%s, %s, %s)", (slug, name, filename))
+						db_conn.commit()
+						cursor.execute("INSERT INTO `belongs_to`(`slug`, `username`, `role`) \
+							Values (%s, %s, %s)", (slug, username, role))
 						db_conn.commit()
 						return redirect(url_for('organisation.organisation'))
 				else:
@@ -312,6 +404,7 @@ def new_organisation():
 @auth.login_required
 # @permission_required(workspace,project_id)
 def project_dashboard(workspace, project_id):
+<<<<<<< HEAD
     return render_template('projects/home_dashboard.html', template_context={"project_id": project_id, "workspace": workspace})
 
 # TODO: Restrict access to projects based on user
@@ -399,3 +492,7 @@ def get_event_details(project_id, start_time, end_time, event_type=None):
             event_dict["custom_data"] = custom_data_key_value_aggregation
 
         return result_to_return        
+=======
+    return render_template('projects/home_dashboard.html', template_context={"project_id": project_id})
+
+>>>>>>> b128fb2... organisation: Add endpoint edit and view project
