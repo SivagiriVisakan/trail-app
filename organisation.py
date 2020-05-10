@@ -399,15 +399,6 @@ def new_organisation():
 
 
 # TODO: Restrict access to projects based on user
-@blueprint.route('/<string:workspace>/<string:project_id>/')
-@blueprint.route('/<string:workspace>/<string:project_id>/dashboard/')
-@auth.login_required
-# @permission_required(workspace,project_id)
-def project_dashboard(workspace, project_id):
-<<<<<<< HEAD
-    return render_template('projects/home_dashboard.html', template_context={"project_id": project_id, "workspace": workspace})
-
-# TODO: Restrict access to projects based on user
 @blueprint.route('/<string:workspace>/<string:project_id>/events/')
 @auth.login_required
 def project_events_dashboard(workspace, project_id):
@@ -492,7 +483,5 @@ def get_event_details(project_id, start_time, end_time, event_type=None):
             event_dict["custom_data"] = custom_data_key_value_aggregation
 
         return result_to_return        
-=======
     return render_template('projects/home_dashboard.html', template_context={"project_id": project_id})
 
->>>>>>> b128fb2... organisation: Add endpoint edit and view project
