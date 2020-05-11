@@ -19,30 +19,30 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 def permission_required(f):
 	@wraps(f)
-	def wrapper(workspace, project_id, *args, **kwargs):
-		result = get_slug(workspace)
+	def wrapper(organisation, project_id, *args, **kwargs):
+		result = get_slug(organisation)
 		if result is not None:
 			user = g.user
 			username = user["username"]
 			db_conn = db.get_database_connection()
 			with db_conn.cursor() as cursor:
 				sql = 'SELECT username, slug FROM belongs_to WHERE username=%s and slug=%s'
-				cursor.execute(sql, (username, workspace))
+				cursor.execute(sql, (username, organisation))
 				records = cursor.fetchone()
 			if records is not None:
 				with db_conn.cursor() as cursor:
 					sql = 'SELECT slug, project_id FROM project WHERE slug=%s and project_id=%s'
-					cursor.execute(sql, (workspace, project_id))
+					cursor.execute(sql, (organisation, project_id))
 					fetch = cursor.fetchone()
 				if fetch is not None:
 					f(*args, **kwargs)
 				else:
 					return "slug do not have this project"
 			else:
-				return "user is not in the working in the workspace"				
+				return "user is not in the working in the organisation"				
 
 		else:
-			return "workspace not found...404 page not found"
+			return "organisation not found...404 page not found"
 	return wrapper
 
 
@@ -55,7 +55,7 @@ def get_organisation(slug, username):
 	with db_conn.cursor() as cursor:
 		sql = 'SELECT u.username, w.logo, w.name as wname, p.project_id, p.name as pname \
 				 FROM user u LEFT JOIN belongs_to b on u.username = b.username \
-				 	 LEFT JOIN workspace w on b.slug = w.slug LEFT JOIN project p on w.slug = p.slug \
+				 	 LEFT JOIN organisation w on b.slug = w.slug LEFT JOIN project p on w.slug = p.slug \
 				 	 	WHERE u.username=%s and b.slug=%s';
 		cursor.execute(sql, (username, slug, ))
 		result = cursor.fetchall()
@@ -67,7 +67,7 @@ def get_organisation(slug, username):
 @auth.login_required
 def organisation():
 	#TODO: Do conditional rendering here (or somewhere) based on user's authencation state
-	#		i.e if he is logged in, show workspaces list, else show a landing page.
+	#		i.e if he is logged in, show organisations list, else show a landing page.
 	user = g.user
 	username = user["username"]
 
@@ -108,7 +108,7 @@ def view_organisation(slug):
 
 	db_conn = db.get_database_connection()
 	with db_conn.cursor() as cursor:
-		sql = 'SELECT name, logo FROM workspace WHERE slug=%s';
+		sql = 'SELECT name, logo FROM organisation WHERE slug=%s';
 		cursor.execute(sql, (slug, ))
 		result = cursor.fetchone()
 
@@ -170,12 +170,12 @@ def view_organisation(slug):
 			flash("Enter username","danger")
 			return render_template('organisation/view_organisation.html', user=user, organisation=organisation)
 
-	
+
 
 def get_slug(slug):
 	db_conn = db.get_database_connection()
 	with db_conn.cursor() as cursor:
-		sql = 'SELECT * FROM `workspace` WHERE `slug`=%s'
+		sql = 'SELECT * FROM `organisation` WHERE `slug`=%s'
 		cursor.execute(sql, (slug, ))
 		result = cursor.fetchone()
 		return result
@@ -192,7 +192,7 @@ def view_project(slug, project_id):
 			cursor.execute(sql, (project_id, ))
 			result = cursor.fetchone()
 		if result is not None:
-			return redirect(url_for('organisation.project_dashboard',workspace=slug, project_id=project_id))
+			return redirect(url_for('organisation.project_dashboard',organisation=slug, project_id=project_id))
 
 		with db_conn.cursor() as cursor:
 			sql = 'SELECT * FROM `project` WHERE `slug`=%s and `project_id`=%s'
@@ -279,7 +279,7 @@ def new_project(slug):
 				result = cursor.fetchone()
 
 			if result is not None:
-				flash("project already exist in the workspace", "danger")
+				flash("project already exist in the organisation", "danger")
 				return render_template('organisation/new_project.html')
 
 			with db_conn.cursor() as cursor:
@@ -378,7 +378,7 @@ def new_organisation():
 					logo.save(os.path.join(app.app.config['UPLOAD_FOLDER'], filename))
 					db_conn = db.get_database_connection()
 					with db_conn.cursor() as cursor:
-						cursor.execute("INSERT INTO `workspace`(`slug`,`name`,`logo`) Values (%s, %s, %s)", (slug, name, filename))
+						cursor.execute("INSERT INTO `organisation`(`slug`,`name`,`logo`) Values (%s, %s, %s)", (slug, name, filename))
 						db_conn.commit()
 						cursor.execute("INSERT INTO `belongs_to`(`slug`, `username`, `role`) \
 							Values (%s, %s, %s)", (slug, username, role))
@@ -397,17 +397,17 @@ def new_organisation():
 
 			return render_template('organisation/new_organisation.html')
 
-@blueprint.route('/<string:workspace>/<string:project_id>/dashboard/')
+@blueprint.route('/<string:organisation>/<string:project_id>/dashboard/')
 @auth.login_required
-def project_dashboard(workspace, project_id):
+def project_dashboard(organisation, project_id):
     return render_template('projects/home_dashboard.html', 
-							template_context={"project_id": project_id, "workspace": workspace})
+							template_context={"project_id": project_id, "organisation": organisation})
 
 
 # TODO: Restrict access to projects based on user
-@blueprint.route('/<string:workspace>/<string:project_id>/events/')
+@blueprint.route('/<string:organisation>/<string:project_id>/events/')
 @auth.login_required
-def project_events_dashboard(workspace, project_id):
+def project_events_dashboard(organisation, project_id):
     event_type = request.args.get('event_type') or None
 
     start_timestamp = request.args.get("start_time") or datetime.datetime.now().timestamp()
@@ -422,7 +422,7 @@ def project_events_dashboard(workspace, project_id):
 
     if 'start_time' not in request.args or 'end_time' not in request.args:
 
-        return redirect(url_for('organisation.project_events_dashboard', workspace=workspace, project_id=project_id,
+        return redirect(url_for('organisation.project_events_dashboard', organisation=organisation, project_id=project_id,
                             start_time=start_timestamp, end_time=end_timestamp, event_type=event_type))
     db_conn = db.get_database_connection()
     events_list = []
@@ -435,7 +435,7 @@ def project_events_dashboard(workspace, project_id):
 
     data = get_event_details(project_id, start_time, end_time, event_type)
 
-    return render_template('projects/events_dashboard.html', template_context={"project_id": project_id, "workspace": workspace,
+    return render_template('projects/events_dashboard.html', template_context={"project_id": project_id, "organisation": organisation,
                                 "event_data": data, "events_list": events_list,"start_date": start_time, "end_date": end_time})
 
 

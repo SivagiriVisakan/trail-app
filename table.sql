@@ -12,13 +12,13 @@ ALTER TABLE `user`
 COMMIT;
 
 
-CREATE TABLE `workspace` (
+CREATE TABLE `organisation` (
   `slug` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `logo` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `name` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
-ALTER TABLE `workspace`
+ALTER TABLE `organisation`
   ADD PRIMARY KEY (`slug`);
 COMMIT;
 
@@ -36,7 +36,7 @@ ALTER TABLE `project`
 
 
 ALTER TABLE `project`
-  ADD CONSTRAINT `project_ibfk_1` FOREIGN KEY (`slug`) REFERENCES `workspace` (`slug`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+  ADD CONSTRAINT `project_ibfk_1` FOREIGN KEY (`slug`) REFERENCES `organisation` (`slug`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 COMMIT;
 
 
@@ -70,7 +70,7 @@ ALTER TABLE `belongs_to`
 
 ALTER TABLE `belongs_to`
   ADD CONSTRAINT `belongs_to_ibfk_1` FOREIGN KEY (`username`) REFERENCES `user` (`username`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  ADD CONSTRAINT `belongs_to_ibfk_2` FOREIGN KEY (`slug`) REFERENCES `workspace` (`slug`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+  ADD CONSTRAINT `belongs_to_ibfk_2` FOREIGN KEY (`slug`) REFERENCES `organisation` (`slug`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 COMMIT;
 
 CREATE TABLE `permission` (

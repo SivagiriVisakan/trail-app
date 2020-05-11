@@ -15,7 +15,7 @@
     <div class="row">
       <div class="col-lg-7 col-md-10">
         <h1 class="display-2 text-white">Hello {{ user.first_name or ""}}!</h1>
-        <p class="text-white mt-0 mb-5">This is your home page. You can see the workspaces that you're part of and
+        <p class="text-white mt-0 mb-5">This is your home page. You can see the organisations that you're part of and
           your projects here.</p>
       </div>
     </div>
@@ -30,7 +30,7 @@
         <div class="card-header">
           <div class="row align-items-center">
             <div class="col-8">
-              <h3 class="mb-0">Workspaces
+              <h3 class="mb-0">Organisations
                 <a href="{{ url_for('organisation.new_organisation') }}" class="btn btn-sm btn-outline-primary ml-3"
                   data-toggle="tooltip" data-placement="bottom" title="Create new organisation"><i
                     class="fas fa-plus"></i></a>
