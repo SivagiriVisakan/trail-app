@@ -397,7 +397,7 @@ def new_organisation():
 
 			return render_template('organisation/new_organisation.html')
 
-@blueprint.route('/<string:organisation>/<string:project_id>/dashboard/')
+@blueprint.route('/<string:organisation>/project/<string:project_id>/dashboard/')
 @auth.login_required
 def project_dashboard(organisation, project_id):
     return render_template('projects/home_dashboard.html', 
@@ -405,7 +405,7 @@ def project_dashboard(organisation, project_id):
 
 
 # TODO: Restrict access to projects based on user
-@blueprint.route('/<string:organisation>/<string:project_id>/events/')
+@blueprint.route('/<string:organisation>/project/<string:project_id>/events/')
 @auth.login_required
 def project_events_dashboard(organisation, project_id):
     event_type = request.args.get('event_type') or None
@@ -457,8 +457,7 @@ def get_event_details(project_id, start_time, end_time, event_type=None):
             cursor.execute(sql, (project_id, event_type, start_time.isoformat(), end_time.isoformat()))
         result = cursor.fetchall()
         result_to_return = result # The DictCursor we use returns the data in required format
-        print('\n\n\n',cursor._last_executed,'\n\n\n')
-        
+
         for event_dict in result_to_return:
             # Query the page_wise events count
             sql = 'SELECT page_url, count(*) as total_events_count FROM web_event WHERE project_id=%s  \
