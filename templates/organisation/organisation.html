@@ -31,37 +31,40 @@
           <div class="row align-items-center">
             <div class="col-8">
               <h3 class="mb-0">Workspaces
-                <button type="button" class="btn btn-sm btn-outline-primary ml-3" data-toggle="tooltip"
-                  data-placement="bottom" title="Create new organisation">
-                  <a href="{{ url_for('organisation.new_organisation') }}"><i class="fas fa-plus"></i></a>
+                <a href="{{ url_for('organisation.new_organisation') }}" class="btn btn-sm btn-outline-primary ml-3"
+                  data-toggle="tooltip" data-placement="bottom" title="Create new organisation"><i
+                    class="fas fa-plus"></i></a>
                 </button>
               </h3>
             </div>
           </div>
         </div>
         {% if empty=="True" %}
-          <div class="card-body">
-            <div class="card">
-              <h3 class="text-primary">Want to join in a organisation ask your admin to add you..</h3>
-            </div>
+        <div class="card-body">
+          <div class="card">
+            <h3 class="text-primary">Want to join in a organisation ask your admin to add you..</h3>
           </div>
+        </div>
         {% endif %}
         {% for keys, value in response.items() %}
         <div class="card-body">
           <div class="card">
             <div class="card-header">
-              <h2 class="text-primary"><a href="{{ url_for('organisation.view_organisation',slug= keys) }}">{{ keys }}</a>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-3" data-toggle="tooltip"
-                  data-placement="bottom" title="Create new project">
-                  <a href="{{ url_for('organisation.new_project', slug=keys) }}"><i class="fas fa-plus"></i></a>
-                </button></h2>
+              <h2 class="text-primary"><a
+                  href="{{ url_for('organisation.view_organisation',slug= keys) }}">{{ keys }}</a>
+                <a href="{{ url_for('organisation.new_project', slug=keys) }}"
+                  class="btn btn-sm btn-outline-primary ml-3" data-toggle="tooltip" data-placement="bottom"
+                  title="Create new project"><i class="fas fa-plus"></i></a>
+              </h2>
             </div>
             {% for item in value %}
             {% for key, values in item.items() %}
             {% if key=="project_id" %}
             <div class="card-body">
               <ul class="list-group list-group-flush">
-                <li class="list-group-item"><a href="{{ url_for('organisation.view_project', slug=keys,project_id=values) }}" class="text-underline text-default">{{ values }}</a></li>
+                <li class="list-group-item"><a
+                    href="{{ url_for('organisation.view_project', slug=keys,project_id=values) }}"
+                    class="text-underline text-default">{{ values }}</a></li>
               </ul>
             </div>
             {% endif %}
@@ -69,7 +72,7 @@
             {% endfor %}
           </div>
         </div>
-          {% endfor %}
+        {% endfor %}
       </div>
     </div>
   </div>
