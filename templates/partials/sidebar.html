@@ -7,24 +7,73 @@
 <nav class="sidenav navbar navbar-vertical  fixed-left  navbar-expand-xs navbar-light bg-white" id="sidenav-main">
   <div class="scrollbar-inner">
     <!-- Brand -->
-    <div class="sidenav-header  align-items-center">
+    <div class="sidenav-header align-items-center">
       <a class="navbar-brand" href="javascript:void(0)">
         <!-- <img src="../assets/img/brand/blue.png" class="navbar-brand-img" alt="Trail"> -->
         <h1>Trail</h1>
       </a>
     </div>
+    <hr />
     <div class="navbar-inner">
       <!-- Collapse -->
       <div class="collapse navbar-collapse" id="sidenav-collapse-main">
+
+        <div class="row justify-content-center mb-2">
+          <div class="col-12 media align-items-center">
+            <span class="avatar rounded-circle">
+              <img
+                src="https://image.shutterstock.com/image-photo/white-transparent-leaf-on-mirror-260nw-1029171697.jpg">
+            </span>
+            <div class="media-body ml-2">
+              <h3 class=" text-primary">The Gang </h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <button class="btn btn-icon btn-outline-secondary btn-sm" type="button">
+              <span class="btn-inner--icon"><i class="fa fa-eye"></i></span>
+              <span class="btn-inner--text">View</span>
+            </button>
+          </div>
+          <div class="col">
+            <button class="btn btn-icon btn-outline-secondary btn-sm m-0" type="button" id="switchOrgButton"
+              data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+
+              <span class="btn-inner--icon">
+                <i class="fa fa-exchange-alt"></i>
+              </span>
+
+              <span class="btn-inner--text">Switch</span>
+            </button>
+
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="switchOrgButton">
+              <h6 class="dropdown-header">Select an organisation</h6>
+              {% for organisation_slug in g.orgs %}
+              <a class="dropdown-item" href="">{{ organisation_slug }}</a>
+              {% endfor %}
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="">
+                <i class="fa fa-plus"></i>
+                Create new
+              </a>
+
+            </div>
+          </div>
+        </div>
+
+        <hr>
+
         <!-- Nav items -->
         <ul class="navbar-nav">
           {% for href, icon, caption in side_bar %}
-            <li class="nav-item">
-              <a class="nav-link {% if caption == active_page %} active {% endif %}" href="{{ href }}">
-                <i class="{{ icon }}"></i>
-                <span class="nav-link-text"> {{ caption }}</span>
-              </a>
-            </li>
+          <li class="nav-item">
+            <a class="nav-link {% if caption == active_page %} active {% endif %}" href="{{ href }}">
+              <i class="{{ icon }}"></i>
+              <span class="nav-link-text"> {{ caption }}</span>
+            </a>
+          </li>
           {% endfor %}
         </ul>
       </div>

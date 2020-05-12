@@ -22,6 +22,33 @@ def login_required(f):
         g.user = db.get_user(username)
         if g.user is None:
             return redirect(url_for('auth.login', next=request.url))
+
+        db_conn = db.get_database_connection()
+
+        with db_conn.cursor() as cursor:
+            sql = ("SELECT"
+                        " belongs_to.slug, project.project_id"
+                    " FROM"
+                        " `user`"
+                    " LEFT OUTER JOIN"
+                        " belongs_to ON user.username = belongs_to.username"
+                    " LEFT OUTER JOIN"
+                        " project ON project.slug = belongs_to.slug"
+                    " WHERE"
+                        " user.username = %s;")
+            cursor.execute(sql, (username, ))
+            result = cursor.fetchall()
+            g.user["orgs"] = {}
+            g.orgs = {}
+            temp = {}
+            if result is not None:
+                for record in result:
+                    organisation_slug = record["slug"]
+                    project_id = record["project_id"]
+
+                    l = g.orgs.get(organisation_slug, None) or []
+                    g.orgs[organisation_slug] = l + [project_id]
+
         return f(*args, **kwargs)
     return decorated_function
 
