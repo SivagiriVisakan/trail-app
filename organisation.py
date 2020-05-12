@@ -184,13 +184,13 @@ def get_slug(slug):
 @auth.login_required
 def view_project(slug, project_id):
 
-
 	if request.method == "GET":
 		db_conn = db.get_database_connection()
 		with db_conn.cursor() as cursor:
-			sql = 'SELECT `event_id` FROM `web_event` WHERE `project_id`=%s'
+			sql = 'SELECT `session_id` FROM `session` WHERE `project_id`=%s'
 			cursor.execute(sql, (project_id, ))
 			result = cursor.fetchone()
+
 		if result is not None:
 			return redirect(url_for('organisation.project_dashboard',organisation=slug, project_id=project_id))
 
@@ -428,7 +428,11 @@ def project_events_dashboard(organisation, project_id):
     events_list = []
     with db_conn.cursor(cursor=None) as cursor:
         # No event type passed, so we get the details of all the events
-        sql = 'SELECT event_type FROM web_event WHERE project_id=%s AND DATE(time_entered) >= DATE(%s) AND DATE(time_entered) <= DATE(%s) GROUP BY event_type'
+
+        sql = ('SELECT event_type FROM web_event INNER JOIN `session` ON web_event.session_id=session.session_id'
+                ' WHERE  project_id=%s AND DATE(time_entered) >= DATE(%s) AND DATE(time_entered) <= DATE(%s)'
+                ' GROUP BY event_type')
+
         cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
         result = cursor.fetchall()
         events_list = [row["event_type"] for row in result]
@@ -450,26 +454,38 @@ def get_event_details(project_id, start_time, end_time, event_type=None):
     with db_conn.cursor(cursor=None) as cursor:
         if event_type is None:
             # No event type passed, so we get the details of all the events
-            sql = 'SELECT event_type, count(*) as total_events_count FROM web_event WHERE project_id=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s) GROUP BY event_type'
+            sql = ('SELECT event_type, count(*) as total_events_count FROM web_event INNER JOIN `session`'
+                    ' ON web_event.session_id=session.session_id WHERE project_id=%s'
+                    ' AND DATE(time_entered) >= DATE(%s) AND DATE(time_entered) <= DATE(%s) GROUP BY event_type')
+
             cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
         else:
-            sql = 'SELECT event_type, count(*) as total_events_count FROM web_event WHERE project_id=%s AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s) '
+            sql = ('SELECT event_type, count(*) as total_events_count FROM web_event INNER JOIN `session`'
+                    ' ON web_event.session_id=session.session_id WHERE project_id=%s'
+                    ' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)')
             cursor.execute(sql, (project_id, event_type, start_time.isoformat(), end_time.isoformat()))
+
         result = cursor.fetchall()
         result_to_return = result # The DictCursor we use returns the data in required format
 
         for event_dict in result_to_return:
             # Query the page_wise events count
-            sql = 'SELECT page_url, count(*) as total_events_count FROM web_event WHERE project_id=%s  \
-                                                AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s) GROUP BY page_url'
+            sql = ('SELECT page_url, count(*) as total_events_count FROM web_event INNER JOIN `session`'
+                    ' ON web_event.session_id=session.session_id WHERE project_id=%s'
+                    ' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s) GROUP BY page_url')
             cursor.execute(sql, (project_id, event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
             result = cursor.fetchall()
             event_dict["page_wise"] = result
 
 
             resulting_custom_data_keys = []
-            sql = 'SELECT JSON_KEYS(custom_data)  as custom_keys from web_event where event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s) group by custom_keys'
-            cursor.execute(sql, ( event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
+
+            sql = ('SELECT JSON_KEYS(custom_data)  as custom_keys from web_event INNER JOIN `session` '
+                    ' ON web_event.session_id=session.session_id where project_id=%s'
+                    ' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)'
+                    ' group by custom_keys')
+
+            cursor.execute(sql, (project_id, event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
             result = cursor.fetchall()
             for row in result:
                 resulting_custom_data_keys.extend(json.loads(row["custom_keys"]))
@@ -479,14 +495,14 @@ def get_event_details(project_id, start_time, end_time, event_type=None):
             custom_data_key_value_aggregation = {}
             for key in resulting_custom_data_keys:
                 sql = 'SELECT JSON_EXTRACT(custom_data, %s) as key_value, count(*) as key_value_count from \
-                        web_event where event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)  group by key_value'
+                        web_event INNER JOIN `session` ON web_event.session_id=session.session_id where project_id=%s AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)  group by key_value'
                 json_path_for_mysql = f'$.{key}'
-                cursor.execute(sql, (json_path_for_mysql, event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
+                cursor.execute(sql, (json_path_for_mysql, project_id, event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
 
                 result = cursor.fetchall()
                 custom_data_key_value_aggregation[key] = result
             event_dict["custom_data"] = custom_data_key_value_aggregation
 
-        return result_to_return        
-    return render_template('projects/home_dashboard.html', template_context={"project_id": project_id})
+        print(result_to_return)
+        return result_to_return
 

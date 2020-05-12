@@ -35,7 +35,9 @@ def get_events(project_id:str, event_type:str = None, start_time:datetime.dateti
     db_conn = db.get_database_connection()
     with db_conn.cursor() as cursor:
         params_to_sql = []
-        sql = 'SELECT * FROM `web_event` WHERE project_id=%s'
+        sql = ('SELECT web_event.*, session.project_id FROM `web_event` '
+                ' INNER JOIN `session` ON web_event.session_id=session.session_id'
+                ' WHERE project_id=%s')
         params_to_sql.append(project_id)
         if event_type:
             sql += ' AND event_type=%s'
@@ -164,8 +166,9 @@ def get_metrics(project):
 
             result = {}
             params_to_sql = []
-            sql =  'SELECT COUNT(DISTINCT(origin_id)) AS total_visitors FROM `web_event` WHERE project_id=%s \
-                        AND DATE(time_entered)=DATE(%s)'
+            sql =  ('SELECT COUNT(DISTINCT(origin_id)) AS total_visitors FROM `session`'
+                    ' WHERE project_id=%s'
+                    ' AND DATE(start_time)=DATE(%s)')
             params_to_sql.append(project)
             params_to_sql.append(current_date)
 
@@ -174,18 +177,25 @@ def get_metrics(project):
             result['total_visitors'] = records['total_visitors']
 
             params_to_sql.clear()
-            sql = 'SELECT COUNT(*) AS pageviews FROM `web_event` WHERE project_id=%s AND event_type=%s \
-                        AND DATE(time_entered)=DATE(%s)'
+            sql = ('SELECT COUNT(*) AS pageviews FROM `web_event` INNER JOIN `session`'
+                    ' ON web_event.session_id=session.session_id WHERE session.project_id=%s'
+                    ' AND web_event.event_type=%s'
+                    ' AND DATE(web_event.time_entered)=DATE(%s)')
             params_to_sql.append(project)
             params_to_sql.append('pageview')
             params_to_sql.append(current_date)
+            try:
+                cursor.execute(sql, params_to_sql)
+            except:
+                print('\n\n\n',cursor._last_executed,'\n\n\n')
 
-            cursor.execute(sql, params_to_sql)
             records = cursor.fetchone()
             result['pageviews'] = records['pageviews']
 
             params_to_sql.clear()
-            sql = 'SELECT COUNT(*) AS total_events FROM `web_event` WHERE project_id=%s AND DATE(time_entered)=DATE(%s)'
+            sql = ('SELECT COUNT(*) AS total_events FROM `web_event` INNER JOIN `session`'
+                    ' ON web_event.session_id=session.session_id WHERE project_id=%s'
+                    ' AND DATE(time_entered)=DATE(%s)')
             params_to_sql.append(project)
             params_to_sql.append(current_date)
 
@@ -194,8 +204,9 @@ def get_metrics(project):
             result['total_events'] = records['total_events']
 
             params_to_sql.clear()
-            sql = 'SELECT event_type, COUNT(*) FROM `web_event` WHERE project_id=%s \
-                        AND DATE(time_entered)=DATE(%s) GROUP BY event_type'
+            sql = ('SELECT event_type, COUNT(*) FROM `web_event` INNER JOIN `session`'
+                    ' ON web_event.session_id=session.session_id WHERE session.project_id=%s'
+                    ' AND DATE(time_entered)=DATE(%s) GROUP BY event_type')
             params_to_sql.append(project)
             params_to_sql.append(current_date)
 
