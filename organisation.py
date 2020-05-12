@@ -225,6 +225,62 @@ def view_project(slug, project_id):
 			result = cursor.fetchone()
 			return render_template('organisation/view_project.html', slug=slug, project=result) 
 
+@blueprint.route('/<string:slug>/edit', methods=['GET','POST'])
+@auth.login_required
+def edit_orgainsation(slug):
+
+	db_conn = db.get_database_connection()
+	with db_conn.cursor() as cursor:
+		sql = 'SELECT * FROM `organisation` WHERE `slug`=%s'
+		cursor.execute(sql, (slug, ))
+		response = cursor.fetchone()
+
+	if request.method == "GET":
+		return render_template('organisation/edit_orgainsation', response=response)
+
+	elif request.method == "POST":
+		name = requst.form.get("name", None)
+		if 'logo' not in request.files:
+			flash("No file part", "danger")
+			return render_template('organisation/new_organisation.html')
+
+		logo = request.files['logo']
+
+		if logo.filename and name:
+			with db_conn.cursor() as cursor:
+				sql = 'SELECT `logo` FROM `organisation` WHERE `slug`=%s'
+				cursor.execute(sql, (slug, ))
+				result = cursor.fetchone()
+
+			if result["logo"] == logo.filename:
+				with db_conn.cursor() as cursor:
+					sql = 'UPDATE `organisation` SET `name`=%s WHERE `organisation`.`slug`=%s'
+					cursor.execute(sql, (name, slug, ))
+					db_conn.commit()
+				return redirect(url_for('organisation.view_organisation',slug=slug))
+
+			else:
+				if logo.filename and allowed_file(logo.filename):
+					filename = secure_filename(logo.filename)
+					logo.save(os.path.join(app.app.config['UPLOAD_FOLDER'], filename))
+					with db_conn.cursor() as cursor:
+						sql = 'UPDATE `organisation` SET `name`=%s, `logo`=%s \
+							WHERE `organisation`.`slug`=%s'
+						cursor.execute(sql, (name, filename, slug, ))
+						db_conn.commit()
+						return redirect(url_for('organisation.view_organisation',slug=slug))
+				else:
+					flash("logo selected should be a image", "danger")
+					return render_template('organisation/edit_orgainsation.html', response=response)
+		else:
+			if not name:
+				flash("Enter name", "danger")
+			if not logo.filename:
+				flash("Select file", "danger")
+			return render_template('organisation/edit_orgainsation.html', response=response)
+
+
+
 @blueprint.route('/<string:slug>/project/<string:project_id>/edit',methods=['GET', 'POST'])
 @auth.login_required
 def edit_project(slug, project_id):
@@ -260,6 +316,7 @@ def edit_project(slug, project_id):
 				sql = 'UPDATE `project` SET `name`=%s, `description`=%s, `api_key`=%s \
 					WHERE	`project`.`project_id`=%s'
 				cursor.execute(sql, (name, description, api_key, project_id, ))
+				db_conn.commit()
 			return redirect(url_for('organisation.view_project',slug=slug,project_id=project_id))
 
 		else:
