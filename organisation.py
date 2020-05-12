@@ -141,9 +141,6 @@ def view_organisation(slug):
 	elif request.method == "POST":
 		
 		username = request.form.get("username", None)
-		if len(username) > 15:
-			flash("username should not exceed 15 characters","danger")
-			return render_template('organisation/view_organisation.html',user=user,organisation=organisation)
 		if username:
 			_username = db.get_user(username)
 			if _username is not None:
@@ -154,7 +151,7 @@ def view_organisation(slug):
 					result = cursor.fetchone()
 				if result is not None:
 					flash("user is already working in the organisation","danger")
-					return render_template('organisation/view_organisation.html', user=user, organisation=organisation)
+					return render_template('organisation/view_organisation.html', user=user, organisation=organisation,show_results=1)
 				else:
 
 					with db_conn.cursor() as cursor:
@@ -169,16 +166,16 @@ def view_organisation(slug):
 						if rows is not None:
 							_member.append(rows["username"])
 					organisation["members"] = _member
-					return render_template('organisation/view_organisation.html',user=user,organisation=organisation)
+					return render_template('organisation/view_organisation.html',user=user,organisation=organisation, show_results=1)
 
 
 			else:
 				flash("username does not exist","danger")
-				return render_template('organisation/view_organisation.html', user=user, organisation=organisation)
+				return render_template('organisation/view_organisation.html', user=user, organisation=organisation, show_results=1)
 
 		else:
 			flash("Enter username","danger")
-			return render_template('organisation/view_organisation.html', user=user, organisation=organisation)
+			return render_template('organisation/view_organisation.html', user=user, organisation=organisation, show_results=1)
 
 @blueprint.route('/<string:slug>/remove_member/<string:member_name>', methods=['GET'])
 @auth.login_required
