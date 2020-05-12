@@ -125,8 +125,18 @@ def view_organisation(slug):
 			_member.append(rows["username"])
 	organisation["members"] = _member
 
+	show_results = 1
+
+	with db_conn.cursor() as cursor:
+		sql = 'SELECT `role` FROM `belongs_to` WHERE `slug`=%s and `username`=%s'
+		cursor.execute(sql, (slug, username, ))
+		result = cursor.fetchone()
+		if result["role"] == 'Member':
+			return render_template('organisation/view_organisation.html', user=user, \
+				organisation=organisation, show_results=0)
+
 	if request.method == "GET":
-		return render_template('organisation/view_organisation.html', user=user, organisation=organisation)	
+		return render_template('organisation/view_organisation.html', user=user, organisation=organisation,show_results=1)	
 
 	elif request.method == "POST":
 		
@@ -170,7 +180,25 @@ def view_organisation(slug):
 			flash("Enter username","danger")
 			return render_template('organisation/view_organisation.html', user=user, organisation=organisation)
 
+@blueprint.route('/<string:slug>/remove_member/<string:member_name>', methods=['GET'])
+@auth.login_required
+def remove_member(slug, member_name):
+	if request.method == "GET":
+		user = g.user
+		db_conn = db.get_database_connection()
+		with db_conn.cursor() as cursor:
+			sql = 'SELECT `role` FROM `belongs_to` WHERE `username`=%s and `slug`=%s'
+			cursor.execute(sql, (member_name, slug, ))
+			result = cursor.fetchone()
+		if result["role"] == 'Admin':
+			flash("You can't remove a admin","danger")
+			return render_template('organisation/view_organisation.html',user=user,organisation=organisation,show_results=0)
+		with db_conn.cursor() as cursor:
+			sql = 'DELETE FROM `belongs_to` WHERE `username`=%s and `slug`=%s'
+			cursor.execute(sql, (member_name, slug, ))
+			db_conn.commit()
 
+		return redirect(url_for('organisation.view_organisation',slug=slug))
 
 def get_slug(slug):
 	db_conn = db.get_database_connection()
