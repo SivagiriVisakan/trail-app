@@ -46,6 +46,7 @@
           <h4 class="card-title text-muted text-uppercase">
             Organisation details
           </h4>
+          {% include "partials/flashed_messages.html" %}
           <form method="POST" role="form" action="{{ url_for('organisation.edit_organisation', slug=organisation.slug, ) }}" enctype="multipart/form-data" s>
             <div class="form-group">
               <label for="name-input">Organisation Name</label>

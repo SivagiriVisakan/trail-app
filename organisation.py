@@ -278,11 +278,13 @@ def edit_organisation(slug):
 
 		logo = request.files['logo']
 
-		if logo.filename and name:
+		if logo.filename or name:
 			with db_conn.cursor() as cursor:
 				sql = 'SELECT `logo` FROM `organisation` WHERE `slug`=%s'
 				cursor.execute(sql, (slug, ))
 				result = cursor.fetchone()
+			if not logo.filename:
+				logo.filename = result["logo"]
 
 			if result["logo"] == logo.filename:
 				with db_conn.cursor() as cursor:
@@ -307,9 +309,7 @@ def edit_organisation(slug):
 		else:
 			if not name:
 				flash("Enter name", "danger")
-			if not logo.filename:
-				flash("Select file", "danger")
-			return render_template('organisation/edit_orgainsation.html', organisation=response)
+			return render_template('organisation/edit_organisation.html', organisation=response)
 
 
 
