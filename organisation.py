@@ -105,6 +105,8 @@ def view_organisation(slug):
 	organisation = {}
 	organisation["slug"] = slug
 
+	set_active_org_project(slug)
+
 
 	db_conn = db.get_database_connection()
 	with db_conn.cursor() as cursor:
@@ -215,6 +217,18 @@ def get_slug(slug):
 		cursor.execute(sql, (slug, ))
 		result = cursor.fetchone()
 		return result
+
+def set_active_org_project(organisation, project=None):
+    if not "active_organisation" in g:
+        g.active_organisation = {}
+    g.active_organisation = organisation
+    g.active_project = project
+
+@blueprint.route('/<string:organisation_slug>/testing')
+@auth.login_required
+def testing(organisation_slug):
+    set_active_org_project(organisation_slug)
+    return render_template('test_side.html')
 
 @blueprint.route('/<string:slug>/project/<string:project_id>', methods=['GET','POST'])
 @auth.login_required
@@ -493,6 +507,7 @@ def new_organisation():
 @blueprint.route('/<string:organisation>/project/<string:project_id>/dashboard/')
 @auth.login_required
 def project_dashboard(organisation, project_id):
+    set_active_org_project(organisation, project_id)
     return render_template('projects/home_dashboard.html', 
 							template_context={"project_id": project_id, "organisation": organisation})
 
@@ -501,6 +516,7 @@ def project_dashboard(organisation, project_id):
 @blueprint.route('/<string:organisation>/project/<string:project_id>/events/')
 @auth.login_required
 def project_events_dashboard(organisation, project_id):
+    set_active_org_project(organisation, project_id)
     event_type = request.args.get('event_type') or None
 
     start_timestamp = request.args.get("start_time") or datetime.datetime.now().timestamp()
