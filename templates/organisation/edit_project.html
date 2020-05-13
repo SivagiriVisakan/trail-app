@@ -1,54 +1,73 @@
-{% extends "layouts/base_layout.html" %}
+{% extends "layouts/dashboard_base_layout.html" %}
+{% set active_page = "Project home" %}
+{% set show_select_project_dropdown = true %}
 
-{% block title %}Edit Project - Trail{% endblock %}
+{% set template_context = {"project_id": project.project_id, "organisation": slug} %}
+{% block title %}Home &middot; {{ project.project_id }} | Trail{% endblock %}
 
 {% block content %}
-	{% include "partials/signed_in_top_nav.html" %}
 
-	<div class="main-content">
-  		<div class="header pb-6 d-flex align-items-center" style="min-height: 500px; background: #566be8">
-    		<!-- Header container -->
-    		<div class="container-fluid d-flex align-items-center">
-      			<div class="row">
-        			<div class="col-lg">
-          				<h2 class="display-3 text-white">Edit your Project</h2>
-          				<h3 class="text-white mt-0  mb-5 font-weight-normal">{{ project_id }}</h3>
-        			</div>
-      			</div>
-    		</div>
-  		</div>
-  		<div class="container mt-5 pb-5">
-    		<div class="row justify-content-center">
-      			<div class="col-lg-6 col-md-8">
-        			<div class="card bg-secondary border-0">
-          				<div class="card-body px-lg-5 py-lg-5">
-            				{% include "partials/flashed_messages.html"%}
-            				<form method="POST" role="form" action="{{ url_for('organisation.edit_project', slug=slug, project_id=project_id) }}"s>
 
-              					<div class="form-group">
-                					<label for="name-input">Project Name</label>
-                					<input class="form-control" id="name-input" value="{{ response.name }}" maxlength="15" placeholder="Name" name="name" maxlength="15" type="text">
-              					</div>
-              					<div class="form-group">
-              						<label for="description-input">Description</label>
-              						<input class="form-control" id="description-input" value="{{ response.description }}"placeholder="Description" type="text" name="description">
-              					</div>
-                        <div class="form-group">
-                          <label for="api_key-input">API_key</label>
-                          <input class="form-control" id="api_key-input" value="{{ response.api_key }}" placeholder="api_key" name="api_key" type="text">
-                        </div>
-                        <div>
-                          <button type="button" onclick="window.location.href='{{ url_for('organisation.get_api', project_id=project_id) }}';"> Refresh Api</button>
-                        </div>
-              					<div class="text-center">
-                					<input type="submit" class="btn btn-primary mt-4" value="Edit Project">
-              					</div>
+<div class="header pb-6 d-flex align-items-center" style="min-height: 100px;
+  background: url('/static/assets/images/project.svg') no-repeat var(--secondary);
 
-            				</form>
-          				</div>
-        			</div>
-      			</div>
-    		</div>
-  		</div>
-	</div>
-{% endblock content %}
+  background-size: 30%;
+  background-position: center right 15%">
+
+  <!-- Header container -->
+  <div class="container-fluid">
+    <div class="row">
+
+      <nav aria-label="breadcrumb" class="ml-md-4 my-3">
+        <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+          <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+          <li class="breadcrumb-item"><a href="#">{{ g.active_organisation }}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{ active_project }}</li>
+        </ol>
+      </nav>
+
+    </div>
+    <div class="row">
+      <div class="ml-4 col-lg-7 col-md-7 col-sm-6">
+        <h3 class="display-3 text-primary"> {{ project.name }}</h3>
+        <p class="text-dark mt-0 mb-5">
+          This is home page of your project.
+          <br>
+          You can find the setup instructions for your project here.
+          <br><br>
+          You can find the analytics data from the <a href="{{ url_for('organisation.project_dashboard', organisation=slug, project_id=project.project_id)}}">dashboard</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container-fluid mt-6">
+  <div class="row justify-content-md-center">
+    <div class="col-xl-8">
+
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title text-muted text-uppercase">
+            Project details
+          </h4>
+          <form action="{{ url_for('organisation.edit_project', slug=g.active_organisation, project_id=active_project) }}"  method="POST" role="form">
+            {% include "partials/flashed_messages.html" %}
+            <div class="form-group">
+              <label for="name-input">Project Name</label>
+                <input class="form-control" id="name-input" value="{{ response.name }}" maxlength="15" placeholder="Name" name="name" maxlength="15" type="text">
+            </div>
+            <div class="form-group">
+              <label for="description-input">Project Description</label>
+                <input class="form-control" id="name-input" value="{{ response.description }}" placeholder="Name" name="description" type="text">
+            </div>
+            <div class="text-center">
+              <input type="submit" class="btn btn-primary mt-4" value="Edit Project">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

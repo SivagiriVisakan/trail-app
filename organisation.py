@@ -321,21 +321,24 @@ def edit_project(slug, project_id):
 			cursor.execute(sql, (username, slug, ))
 			result = cursor.fetchone()
 
-		if result["role"] == "Admin":
-			return render_template('organisation/edit_project.html', slug=slug, project_id=project_id, response=response)
-		else:
-			return "Sorry you don't have edit access"
+		set_active_org_project(slug, project_id)
+
+		with db_conn.cursor() as cursor:
+			sql = 'SELECT * FROM `project` WHERE `slug`=%s and `project_id`=%s'
+			cursor.execute(sql, (slug, project_id, ))
+			result = cursor.fetchone()
+
+		return render_template('organisation/edit_project.html', slug=slug, project=result, response=response)
 
 	elif request.method == "POST":
 		name = request.form.get("name", None)
 		description = request.form.get("description", None)
-		api_key = request.form.get("api_key", None)
 
-		if name and description and api_key:
+		if name and description:
 			with db_conn.cursor() as cursor:
-				sql = 'UPDATE `project` SET `name`=%s, `description`=%s, `api_key`=%s \
+				sql = 'UPDATE `project` SET `name`=%s, `description`=%s \
 					WHERE	`project`.`project_id`=%s'
-				cursor.execute(sql, (name, description, api_key, project_id, ))
+				cursor.execute(sql, (name, description, project_id, ))
 				db_conn.commit()
 			return redirect(url_for('organisation.view_project',slug=slug,project_id=project_id))
 
@@ -344,8 +347,6 @@ def edit_project(slug, project_id):
 				flash("Enter project name", "danger")
 			if not description:
 				flash("Enter description", "danger")
-			if not api_key:
-				flash("refresh api-key", "danger")
 			return render_template('organisation/edit_project.html')
 
 
@@ -420,9 +421,9 @@ def new_project(slug):
 			return render_template('organisation/new_project.html')
 
 
-@blueprint.route('/get-api/<string:project_id>', methods=["GET"])
+@blueprint.route('/<string:slug>/project/<string:project_id>/get-api', methods=["GET"])
 @auth.login_required
-def get_api(project_id):
+def get_api(slug, project_id):
 	if request.method == "GET":
 		response = {}
 		db_conn = db.get_database_connection()
@@ -434,9 +435,12 @@ def get_api(project_id):
 				cursor.execute(sql, (api_key, ))
 				result = cursor.fetchone()
 			if result is None:
+				with db_conn.cursor() as cursor:
+					sql = 'UPDATE `project` SET `api_key`=%s WHERE `project`.`project_id`=%s'
+					cursor.execute(sql, (api_key, project_id, ))
+					db_conn.commit()
 				break
-		response["api_key"] = api_key
-		return response
+		return redirect(url_for('organisation.view_project', slug=slug, project_id=project_id))
 
 
 @blueprint.route('/new',methods=["GET","POST"])
