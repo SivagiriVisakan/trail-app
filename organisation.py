@@ -184,11 +184,11 @@ def view_organisation(slug):
 
 			else:
 				flash("username does not exist","danger")
-				return render_template('organisation/view_organisation.html', user=user, organisation=organisation, show_results=False)
+				return render_template('organisation/view_organisation.html', user=user, organisation=organisation, show_results=True)
 
 		else:
 			flash("Enter username","danger")
-			return render_template('organisation/view_organisation.html', user=user, organisation=organisation, show_results=False)
+			return render_template('organisation/view_organisation.html', user=user, organisation=organisation, show_results=True)
 
 @blueprint.route('/<string:slug>/remove_member/<string:member_name>', methods=['GET'])
 @auth.login_required
