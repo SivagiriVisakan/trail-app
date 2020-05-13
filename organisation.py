@@ -138,7 +138,7 @@ def view_organisation(slug):
 			_projects.append(rows["project_id"])
 	organisation["projects"] = _projects
 
-	show_results = 1
+	show_results = True
 
 	with db_conn.cursor() as cursor:
 		sql = 'SELECT `role` FROM `belongs_to` WHERE `slug`=%s and `username`=%s'
@@ -146,10 +146,10 @@ def view_organisation(slug):
 		result = cursor.fetchone()
 		if result["role"] == 'Member':
 			return render_template('organisation/view_organisation.html', user=user, \
-				organisation=organisation, show_results=0)
+				organisation=organisation, show_results=False)
 
 	if request.method == "GET":
-		return render_template('organisation/view_organisation.html', user=user, organisation=organisation,show_results=1)	
+		return render_template('organisation/view_organisation.html', user=user, organisation=organisation,show_results=True)	
 
 	elif request.method == "POST":
 		
@@ -164,7 +164,7 @@ def view_organisation(slug):
 					result = cursor.fetchone()
 				if result is not None:
 					flash("user is already working in the organisation","danger")
-					return render_template('organisation/view_organisation.html', user=user, organisation=organisation,show_results=1)
+					return render_template('organisation/view_organisation.html', user=user, organisation=organisation,show_results=True)
 				else:
 
 					with db_conn.cursor() as cursor:
@@ -179,16 +179,16 @@ def view_organisation(slug):
 						if rows is not None:
 							_member.append(rows["username"])
 					organisation["members"] = _member
-					return render_template('organisation/view_organisation.html',user=user,organisation=organisation, show_results=1)
+					return render_template('organisation/view_organisation.html',user=user,organisation=organisation, show_results=True)
 
 
 			else:
 				flash("username does not exist","danger")
-				return render_template('organisation/view_organisation.html', user=user, organisation=organisation, show_results=1)
+				return render_template('organisation/view_organisation.html', user=user, organisation=organisation, show_results=False)
 
 		else:
 			flash("Enter username","danger")
-			return render_template('organisation/view_organisation.html', user=user, organisation=organisation, show_results=1)
+			return render_template('organisation/view_organisation.html', user=user, organisation=organisation, show_results=False)
 
 @blueprint.route('/<string:slug>/remove_member/<string:member_name>', methods=['GET'])
 @auth.login_required
