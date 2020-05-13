@@ -1,54 +1,76 @@
-{% extends "layouts/base_layout.html" %}
+{% extends "layouts/dashboard_base_layout.html" %}
 
-{% block title %}Edit Organisation - Trail{% endblock %}
+{% block title %}{{ organisation.name }} | Trail{% endblock %}
+{% set active_page = "" %}
 
 {% block content %}
-	{% include "partials/signed_in_top_nav.html" %}
 
-	<div class="main-content">
-  		<div class="header pb-6 d-flex align-items-center" style="min-height: 500px; background: #566be8">
-    		<!-- Header container -->
-    		<div class="container-fluid d-flex align-items-center">
-      			<div class="row">
-        			<div class="col-lg">
-          				<h2 class="display-3 text-white">Edit your Organisation</h2>
-          				<h3 class="text-white mt-0  mb-5 font-weight-normal">{{ response.slug }}</h3>
-        			</div>
-      			</div>
-    		</div>
-  		</div>
-  		<div class="container mt-5 pb-5">
-    		<div class="row justify-content-center">
-      			<div class="col-lg-6 col-md-8">
-        			<div class="card bg-secondary border-0">
-          				<div class="card-body px-lg-5 py-lg-5">
-            				{% include "partials/flashed_messages.html"%}
-            				<form method="POST" role="form" action="{{ url_for('organisation.edit_organisation', slug=response.slug, ) }}" enctype="multipart/form-data" s>
 
-              					<div class="form-group">
-                					<label for="name-input">Organisation Name</label>
-                					<input class="form-control" id="name-input" value="{{ response.name }}" maxlength="15" placeholder="Name" name="name" maxlength="15" type="text">
-              					</div>
-                        <div class="text-center">
-                          <div class="col-lg-1 col-1" style="min-width: 100px;">
-                            <img src="{{ url_for('organisation.upload_file',filename=response.logo) }}" 
-                            class="rounded-circle p-2" height="100px" width="100px">
-                          </div>
-                        </div>
-                        <br />
-                        <div class="form-group">
-                          <label for="logo-file-input">Logo for the organisation</label>
-                          <input type="file" name="logo" class="custom-file-input" value="{{ response.logo }}" id="logo-file-input">
-                        </div>
-              					<div class="text-center">
-                					<input type="submit" class="btn btn-primary mt-4" value="Edit Organisation">
-              					</div>
+<!-- Header -->
+<div class="header pb-6 d-flex align-items-center" style="min-height: 500px;
+      background: url('/static/assets/images/organisation.svg') no-repeat var(--secondary);
+      background-size: 35%;
+      background-position: center right 15%">
 
-            				</form>
-          				</div>
-        			</div>
-      			</div>
-    		</div>
-  		</div>
-	</div>
-{% endblock content %}
+  <!-- Header container -->
+  <div class="container-fluid">
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+      <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ g.active_organisation }}</li>
+      </ol>
+    </nav>
+
+    <div class="row">
+      <div class="col-lg-1 col-1" style="min-width: 100px;">
+        <img src="{{ url_for('organisation.upload_file',filename=organisation.logo) }}"
+          class="rounded-circle p-2" height="100px" width="100px">
+      </div>
+
+      <div class="col-lg-7 col-md-7 col-sm-6">
+        <h3 class="display-2 text-primary"> {{ organisation.name }}</h3>
+        <h4 class="display-4 text-dark"> {{ organisation.slug }}</h4>
+        <p class="text-dark mt-0 mb-5">
+          You can change your organisation details here.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container-fluid mt-6">
+  <div class="row justify-content-md-center">
+    <div class="col-xl-8">
+
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title text-muted text-uppercase">
+            Organisation details
+          </h4>
+          <form method="POST" role="form" action="{{ url_for('organisation.edit_organisation', slug=organisation.slug, ) }}" enctype="multipart/form-data" s>
+            <div class="form-group">
+              <label for="name-input">Organisation Name</label>
+                <input class="form-control" id="name-input" value="{{ organisation.name }}" maxlength="15" placeholder="Name" name="name" maxlength="15" type="text">
+            </div>
+            <div class="text-center">
+              <div class="col-lg-1 col-1" style="min-width: 100px;">
+                <img src="{{ url_for('organisation.upload_file',filename=organisation.logo) }}" 
+                  class="rounded-circle p-2" height="100px" width="100px">
+              </div>
+            </div>
+            <br />
+            <div class="form-group">
+              <label for="logo-file-input">Logo for the organisation</label>
+              <br />
+              <input type="file" name="logo" class="custom-file-input" value="{{ organisation.logo }}" id="logo-file-input">
+            </div>
+            <div class="text-center">
+              <input type="submit" class="btn btn-primary mt-4" value="Edit Organisation">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

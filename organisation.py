@@ -249,6 +249,8 @@ def view_project(slug, project_id):
 @auth.login_required
 def edit_organisation(slug):
 
+	set_active_org_project(slug)
+	
 	db_conn = db.get_database_connection()
 	with db_conn.cursor() as cursor:
 		sql = 'SELECT * FROM `organisation` WHERE `slug`=%s'
@@ -256,13 +258,13 @@ def edit_organisation(slug):
 		response = cursor.fetchone()
 
 	if request.method == "GET":
-		return render_template('organisation/edit_organisation.html', response=response)
+		return render_template('organisation/edit_organisation.html', organisation=response)
 
 	elif request.method == "POST":
 		name = request.form.get("name", None)
 		if 'logo' not in request.files:
 			flash("No file part", "danger")
-			return render_template('organisation/edit_organisation.html',response=response)
+			return render_template('organisation/edit_organisation.html',organisation=response)
 
 		logo = request.files['logo']
 
@@ -291,13 +293,13 @@ def edit_organisation(slug):
 						return redirect(url_for('organisation.view_organisation',slug=slug))
 				else:
 					flash("logo selected should be a image", "danger")
-					return render_template('organisation/edit_orgainsation.html', response=response)
+					return render_template('organisation/edit_orgainsation.html', organisation=response)
 		else:
 			if not name:
 				flash("Enter name", "danger")
 			if not logo.filename:
 				flash("Select file", "danger")
-			return render_template('organisation/edit_orgainsation.html', response=response)
+			return render_template('organisation/edit_orgainsation.html', organisation=response)
 
 
 
