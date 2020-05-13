@@ -90,6 +90,7 @@
 				</div>
 			</div>
 
+			
 
 			<div class="input-group mb-3">
 				<div class="input-group-prepend">
@@ -99,9 +100,41 @@
 				<input type="text" class="form-control" placeholder="Recipient's username" aria-label="API Key" disabled
 					value="{{ project.api_key }}">
 				<div class="input-group-append">
-					<button class="btn btn-outline-primary" type="button">Re-generate</button>
+					<button class="btn btn-outline-primary" data-toggle="modal" data-target="#generateAPI" type="button">Re-generate</button>
 				</div>
 			</div>
+
+			<div class="modal fade" id="generateAPI" tabindex="-1" role="dialog" aria-labelledby="modal-notification" aria-hidden="true">
+    			<div class="modal-dialog modal-danger modal-dialog-centered modal-" role="document">
+        			<div class="modal-content bg-gradient-danger">
+        	
+            			<div class="modal-header">
+                			<h6 class="modal-title" id="modal-title-notification">Your attention is required</h6>
+                				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    				<span aria-hidden="true">×</span>
+                				</button>
+            			</div>
+            
+            			<div class="modal-body">
+            	
+                			<div class="py-3 text-center">
+                    			<i class="ni ni-bell-55 ni-3x"></i>
+                    			<h4 class="heading mt-4">Are you sure want to change the API key</h4>
+                    			<p>Changing the API key will require you to update the API key in your site to continue working.</p>
+                			</div>
+                
+            			</div>
+            
+            			<div class="modal-footer">
+            				<form action="{{ url_for('organisation.get_api',slug=g.active_organisation, project_id=active_project) }}" method="GET">
+            					<button type="submit" class="btn btn-white">Ok, Got it</button>
+            				</form>
+                			<button type="button" class="btn btn-link text-white ml-auto" data-dismiss="modal">Close</button>
+            			</div>
+            
+        			</div>
+    			</div>			
+    		</div>
 
 			<div class="card">
 				<div class="card-body">
