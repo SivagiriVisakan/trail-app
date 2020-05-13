@@ -106,7 +106,7 @@
 		<div class="modal-dialog modal-dialog-centered" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+					<h5 class="modal-title" id="exampleModalLabel">Add Member</h5>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
@@ -116,7 +116,7 @@
 					<form action="{{ url_for('organisation.view_organisation',slug=organisation.slug) }}" method="POST" role="form">
 						<div class="form-group">
         					<label for="member-name-input" class="form-control-label">Username</label>
-        					<input class="form-control" name="username" type="text" id="member-name-input">
+        					<input class="form-control" name="username" placeholder="Enter Username" type="text" id="member-name-input">
  					   </div>
  
 				</div>
