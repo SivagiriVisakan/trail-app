@@ -47,7 +47,9 @@
 			<div class="card">
 				<div class="card-body">
 					<h3 class="card-title">Projects</h3>
-					<p class="card-text">Placeholder for projects list</p>
+					{% for project in organisation.projects%}
+						<p class="card-text">{{ project }}</p>
+					{% endfor %}
 				</div>
 			</div>
 
@@ -116,26 +118,7 @@
 			</div>
 		</div>
 	</div>
-	<!-- <div id="myModal" class="modal fade" role="dialog">
-		<div class="modal-dialog" +>
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title">Add Member</h4>
-				</div>
-				<form role="form" action="{{ url_for('organisation.view_organisation',slug=organisation.slug) }}"
-					method="POST">
-					<div class="modal-body">
-						<input type="text" name="username" placeholder="username">
-					</div>
-				</form>
-				<div class="modal-footer">
-					<button type="submit" class="btn btn-primary" data-dismiss="modal">Add</button>
-					<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-				</div>
-			</div>
-		</div>
-	</div> -->
+
 </div>
 {% else %}
 <!-- Header -->
@@ -173,7 +156,9 @@
 			<div class="card">
 				<div class="card-body">
 					<h3 class="card-title">Projects</h3>
-					<p class="card-text">Placeholder for projects list</p>
+					{% for project in organisation.projects%}
+						<p class="card-text">{{ project }}</p>
+					{% endfor %}
 				</div>
 			</div>
 
@@ -204,47 +189,6 @@
 			</div>
 		</div>
 	</div>
-
-	<!-- <div class="modal fade" id="addMemberModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-		aria-hidden="true">
-		<div class="modal-dialog modal-dialog-centered" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-				<div class="modal-body">
-					...
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-					<button type="button" class="btn btn-primary">Save changes</button>
-				</div>
-			</div>
-		</div>
-	</div> -->
-	<!-- <div id="myModal" class="modal fade" role="dialog">
-		<div class="modal-dialog" +>
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title">Add Member</h4>
-				</div>
-				<form role="form" action="{{ url_for('organisation.view_organisation',slug=organisation.slug) }}"
-					method="POST">
-					<div class="modal-body">
-						<input type="text" name="username" placeholder="username">
-					</div>
-				</form>
-				<div class="modal-footer">
-					<button type="submit" class="btn btn-primary" data-dismiss="modal">Add</button>
-					<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-				</div>
-			</div>
-		</div>
-	</div> -->
 </div>
 {% endif %}
 {% endblock %}

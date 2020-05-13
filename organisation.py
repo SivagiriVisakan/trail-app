@@ -125,6 +125,17 @@ def view_organisation(slug):
 			_member.append(rows["username"])
 	organisation["members"] = _member
 
+	with db_conn.cursor() as cursor:
+		sql = 'SELECT project_id FROM project WHERE slug=%s'
+		cursor.execute(sql, (slug, ))
+		result = cursor.fetchall()
+
+	_projects = []
+	for rows in result:
+		if rows is not None:
+			_projects.append(rows["project_id"])
+	organisation["projects"] = _projects
+
 	show_results = 1
 
 	with db_conn.cursor() as cursor:
@@ -189,7 +200,7 @@ def remove_member(slug, member_name):
 			result = cursor.fetchone()
 		if result["role"] == 'Admin':
 			flash("You can't remove a admin","danger")
-			return render_template('organisation/view_organisation.html',user=user,organisation=organisation,show_results=0)
+			return redirect(url_for('organisation.view_organisation',slug=slug))
 		with db_conn.cursor() as cursor:
 			sql = 'DELETE FROM `belongs_to` WHERE `username`=%s and `slug`=%s'
 			cursor.execute(sql, (member_name, slug, ))
