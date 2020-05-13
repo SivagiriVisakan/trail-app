@@ -327,18 +327,14 @@ def edit_project(slug, project_id):
 		cursor.execute(sql, (project_id, ))
 		response = cursor.fetchone()
 
+	set_active_org_project(slug, project_id)
+
+	with db_conn.cursor() as cursor:
+		sql = 'SELECT * FROM `project` WHERE `slug`=%s and `project_id`=%s'
+		cursor.execute(sql, (slug, project_id, ))
+		result = cursor.fetchone()
+
 	if request.method == "GET":
-		with db_conn.cursor() as cursor:
-			sql = 'SELECT `role` from `belongs_to` WHERE `username`=%s and `slug`=%s'
-			cursor.execute(sql, (username, slug, ))
-			result = cursor.fetchone()
-
-		set_active_org_project(slug, project_id)
-
-		with db_conn.cursor() as cursor:
-			sql = 'SELECT * FROM `project` WHERE `slug`=%s and `project_id`=%s'
-			cursor.execute(sql, (slug, project_id, ))
-			result = cursor.fetchone()
 
 		return render_template('organisation/edit_project.html', slug=slug, project=result, response=response)
 
@@ -359,7 +355,8 @@ def edit_project(slug, project_id):
 				flash("Enter project name", "danger")
 			if not description:
 				flash("Enter description", "danger")
-			return render_template('organisation/edit_project.html')
+
+			return render_template('organisation/edit_project.html',slug=slug,project=result, response=response)
 
 
 @blueprint.route('/<string:slug>/project/new', methods=['GET','POST'])
