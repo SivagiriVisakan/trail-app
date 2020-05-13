@@ -1,7 +1,7 @@
 {% set side_bar = [
   
-  (url_for('organisation.project_dashboard', project_id=template_context["project_id"], organisation=template_context["organisation"]), 'ni ni-tv-2 text-primary', 'Dashboard'),
-  (url_for('organisation.project_events_dashboard', **template_context), 'fa fa-layer-group text-primary', 'Events'),
+  (url_for('organisation.project_dashboard', project_id=active_project, organisation=g.active_organisation), 'ni ni-tv-2 text-primary', 'Dashboard'),
+  (url_for('organisation.project_events_dashboard', project_id=active_project, organisation=g.active_organisation), 'fa fa-layer-group text-primary', 'Events'),
 ] -%}
 <!-- Sidenav -->
 <nav class="sidenav navbar navbar-vertical  fixed-left  navbar-expand-xs navbar-light bg-white" id="sidenav-main">
@@ -18,24 +18,25 @@
       <!-- Collapse -->
       <div class="collapse navbar-collapse" id="sidenav-collapse-main">
 
-        <div class="row justify-content-center mb-2">
+        <h5 class="text-uppercase text-muted mb-2 px-2">Organisation</h5>
+        <div class="row justify-content-center my-2">
           <div class="col-12 media align-items-center">
             <span class="avatar rounded-circle">
-              <img
-                src="https://image.shutterstock.com/image-photo/white-transparent-leaf-on-mirror-260nw-1029171697.jpg">
+              <img src="{{ url_for('organisation.upload_file',filename='logos/'+ g.active_organisation) }}">
             </span>
             <div class="media-body ml-2">
-              <h3 class=" text-primary">The Gang </h3>
+              <h3 class=" text-primary">{{ g.orgs[g.active_organisation]["name"] }} </h3>
             </div>
           </div>
         </div>
 
         <div class="row">
           <div class="col">
-            <button class="btn btn-icon btn-outline-secondary btn-sm" type="button">
+            <a class="btn btn-icon btn-outline-secondary btn-sm"
+              href="{{ url_for('organisation.view_organisation',slug=g.active_organisation) }}">
               <span class="btn-inner--icon"><i class="fa fa-eye"></i></span>
               <span class="btn-inner--text">View</span>
-            </button>
+            </a>
           </div>
           <div class="col">
             <button class="btn btn-icon btn-outline-secondary btn-sm m-0" type="button" id="switchOrgButton"
@@ -51,10 +52,11 @@
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="switchOrgButton">
               <h6 class="dropdown-header">Select an organisation</h6>
               {% for organisation_slug in g.orgs %}
-              <a class="dropdown-item" href="">{{ organisation_slug }}</a>
+              <a class="dropdown-item"
+                href="{{ url_for('organisation.view_organisation', slug=organisation_slug) }}">{{ g.orgs[organisation_slug]["name"] }}</a>
               {% endfor %}
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="">
+              <a class="dropdown-item" href="{{ url_for('organisation.new_organisation') }}">
                 <i class="fa fa-plus"></i>
                 Create new
               </a>
@@ -64,6 +66,22 @@
         </div>
 
         <hr>
+        {% if show_select_project_dropdown %}
+        <h5 class="text-uppercase text-muted mb-2 px-2">Project</h5>
+
+        <div class="dropdown">
+          <button class="btn bg-white btn-block dropdown-toggle" type="button" id="projectDropdownButton"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{ active_project }}
+          </button>
+          <div class="dropdown-menu" aria-labelledby="projectDropdownButton">
+            <h6 class="dropdown-header">Switch project</h6>
+            {% for project in g.orgs[g.active_organisation]["projects"] %}
+            <a class="dropdown-item"
+              href="{{ url_for(request.endpoint, project_id=project, organisation=g.active_organisation) }}">{{ project }}</a>
+            {% endfor %}
+          </div>
+        </div>
 
         <!-- Nav items -->
         <ul class="navbar-nav">
@@ -76,6 +94,8 @@
           </li>
           {% endfor %}
         </ul>
+        {% endif %}
+
       </div>
     </div>
   </div>
