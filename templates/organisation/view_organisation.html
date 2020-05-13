@@ -1,14 +1,10 @@
-{% extends "layouts/base_layout.html" %}
+{% extends "layouts/dashboard_base_layout.html" %}
 
 {% block title %}{{ organisation.name }} | Trail{% endblock %}
+{% set active_page = "" %}
 
 {% block content %}
 
-<!-- Header -->
-<div class="main-content" id="panel">
-	<!-- Topnav -->
-	{% include "partials/signed_in_top_nav.html" %}
-</div>
 
 <!-- Header -->
 {% if show_results %}
@@ -21,8 +17,8 @@
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-lg-1 col-1" style="min-width: 100px;">
-				<img src="{{ url_for('organisation.upload_file',filename=organisation.logo) }}" 
-				class="rounded-circle p-2" height="100px" width="100px">
+				<img src="{{ url_for('organisation.upload_file',filename=organisation.logo) }}"
+					class="rounded-circle p-2" height="100px" width="100px">
 			</div>
 
 			<div class="col-lg-7 col-md-7 col-sm-6">
@@ -47,8 +43,9 @@
 			<div class="card">
 				<div class="card-body">
 					<h3 class="card-title">Projects</h3>
-					{% for project in organisation.projects%}
-						<p class="card-text">{{ project }}</p>
+					{% for project in organisation.projects %}
+					<a href="{{ url_for('organisation.view_project', slug=g.active_organisation, project_id=project) }}">
+					<p class="card-text">{{ project }}</p>
 					{% endfor %}
 				</div>
 			</div>
