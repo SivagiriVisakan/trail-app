@@ -1,5 +1,5 @@
 {% set side_bar = [
-  
+  (url_for('organisation.view_project', project_id=active_project, slug=g.active_organisation), 'ni ni-atom text-primary', 'Project home'),
   (url_for('organisation.project_dashboard', project_id=active_project, organisation=g.active_organisation), 'ni ni-tv-2 text-primary', 'Dashboard'),
   (url_for('organisation.project_events_dashboard', project_id=active_project, organisation=g.active_organisation), 'fa fa-layer-group text-primary', 'Events'),
 ] -%}
@@ -78,7 +78,7 @@
             <h6 class="dropdown-header">Switch project</h6>
             {% for project in g.orgs[g.active_organisation]["projects"] %}
             <a class="dropdown-item"
-              href="{{ url_for(request.endpoint, project_id=project, organisation=g.active_organisation) }}">{{ project }}</a>
+              href="{{ url_for(request.endpoint, project_id=project, organisation=g.active_organisation, slug=g.active_organisation) }}">{{ project }}</a>
             {% endfor %}
           </div>
         </div>

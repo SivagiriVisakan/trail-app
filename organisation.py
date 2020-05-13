@@ -230,9 +230,11 @@ def testing(organisation_slug):
     set_active_org_project(organisation_slug)
     return render_template('test_side.html')
 
-@blueprint.route('/<string:slug>/project/<string:project_id>', methods=['GET','POST'])
+@blueprint.route('/<string:slug>/project/<string:project_id>/', methods=['GET','POST'])
 @auth.login_required
 def view_project(slug, project_id):
+
+	set_active_org_project(slug, project_id)
 
 	if request.method == "GET":
 		db_conn = db.get_database_connection()

@@ -1,13 +1,143 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>View Project</title>
-</head>
-<body>
-	<h1>{{ project.project_id }}</h1>
-	<h2>{{ project.name }}</h2>
-	<h2>{{ project.description }}</h2>
-	<h2>{{ project.api_key }}</h2>
-	<a href="{{ url_for('organisation.edit_project', slug=slug, project_id=project.project_id)}}">Edit Project</a>
-</body>
-</html>
+{% extends "layouts/dashboard_base_layout.html" %}
+{% set active_page = "Project home" %}
+{% set show_select_project_dropdown = true %}
+
+{% set template_context = {"project_id": project.project_id, "organisation": slug} %}
+{% block title %}Home &middot; {{ project.project_id }} | Trail{% endblock %}
+
+{% block content %}
+
+
+<div class="header pb-6 d-flex align-items-center" style="min-height: 100px;
+	background: url('/static/assets/images/project.svg') no-repeat var(--secondary);
+
+	background-size: 30%;
+	background-position: center right 15%">
+
+	<!-- Header container -->
+	<div class="container-fluid">
+		<div class="row">
+
+			<nav aria-label="breadcrumb" class="ml-md-4 my-3">
+				<ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+					<li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+					<li class="breadcrumb-item"><a href="#">{{ g.active_organisation }}</a></li>
+					<li class="breadcrumb-item active" aria-current="page">{{ active_project }}</li>
+				</ol>
+			</nav>
+
+		</div>
+		<div class="row">
+			<div class="ml-4 col-lg-7 col-md-7 col-sm-6">
+				<h3 class="display-3 text-primary"> {{ project.name }}</h3>
+				<p class="text-dark mt-0 mb-5">
+					This is home page of your project.
+					<br>
+					You can find the setup instructions for your project here.
+					<br><br>
+					You can find the analytics data from the <a href="{{ url_for('organisation.project_dashboard', organisation=slug, project_id=project.project_id)}}">dashboard</a>
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="container-fluid mt-6">
+	<div class="row justify-content-md-center">
+		<div class="col-xl-8">
+
+			<div class="card">
+				<div class="card-body">
+					<h4 class="card-title text-muted text-uppercase">
+						Project details
+						<a class="btn btn-outline-primary btn-sm ml-3 text-right"
+							href="{{ url_for('organisation.edit_project', slug=slug, project_id=project.project_id)}}">
+							<span class="btn-inner--icon">
+								<i class="fas fa-pen"></i>
+							</span>
+							<span class="btn-inner--text">Edit</span>
+						</a>
+
+					</h4>
+					<div class="card-text ml-3">
+						<div class="row">
+							<div class="col">
+								<p class=" text-uppercase text-gray mb-0">
+									Name
+								</p>
+								<h3 class="text-default font-weight-normal">
+									{{ project.name }}
+								</h3>
+							</div>
+
+							<div class="col">
+								<p class=" text-uppercase text-gray mb-0">ID</p>
+								<h3 class="text-default font-weight-normal">
+									{{ project.project_id }}
+								</h3>
+							</div>
+						</div>
+						<div class="row mt-3">
+							<div class="col">
+								<p class=" text-uppercase text-gray mb-0">
+									Description
+								</p>
+								<h3 class="text-default font-weight-normal">
+									{{ project.description }}
+								</h3>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text text-default">API Key</span>
+				</div>
+
+				<input type="text" class="form-control" placeholder="Recipient's username" aria-label="API Key" disabled
+					value="{{ project.api_key }}">
+				<div class="input-group-append">
+					<button class="btn btn-outline-primary" type="button">Re-generate</button>
+				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-body">
+					<h4 class="card-title text-muted text-uppercase">
+						Setup info
+					</h4>
+					<p class="text-dark">
+						To integrate Trail in your apps and to start getting analytics data, please follow these steps.
+					</p>
+					<ol>
+						<li>
+							Include the Trail JS script in your project. <br>
+							<pre 
+							class="mt-2">&lt;script src="trail.min.js" type="script/javascript"&gt;&lt;/script&gt;
+							</pre>
+						</li>
+						<li class="mt-4">
+							Set the project API key of this project and initialize the JS script.
+							<pre class="mt-2">
+&lt;script type="script/javascript"&gt;
+	var t = trailApp("{{ project.api_key }}")
+&lt;/script&gt;</code>
+							</pre>
+						</li>
+
+						<li>
+							That's it! <i class="fa fa-check-circle text-success"></i>
+							<br>
+							Now, Trail should be able to record the analytics data for your site.
+						</li>
+
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock %}
