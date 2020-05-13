@@ -92,13 +92,14 @@ var Layout = (function() {
 		console.log(action);
 		console.log(target);
         switch (action) {
-            case 'sidenav-pin':
-                pinSidenav();
-            break;
+			// See https://github.com/creativetimofficial/argon-dashboard/issues/39#issuecomment-590234230
+			// case 'sidenav-pin':
+            //     pinSidenav();
+            // break;
 
-            case 'sidenav-unpin':
-                unpinSidenav();
-            break;
+            // case 'sidenav-unpin':
+            //     unpinSidenav();
+            // break;
 
             case 'search-show':
                 target = $this.data('target');
