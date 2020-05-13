@@ -310,7 +310,7 @@ def register_new_event():
 
     else:
         end_time = datetime.datetime.now()
-        end_time = end_time.strftime(""%Y-%m-%d %H:%M:%S"")
+        end_time = end_time.strftime("%Y-%m-%d %H:%M:%S")
 
         with db_connection.cursor() as cursor:
             update_exist_session = "UPDATE `session` SET `end_time`=%s, `end_page`=%s WHERE `session_id`=%s"
