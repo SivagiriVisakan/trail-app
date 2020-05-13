@@ -238,13 +238,6 @@ def view_project(slug, project_id):
 
 	if request.method == "GET":
 		db_conn = db.get_database_connection()
-		with db_conn.cursor() as cursor:
-			sql = 'SELECT `session_id` FROM `session` WHERE `project_id`=%s'
-			cursor.execute(sql, (project_id, ))
-			result = cursor.fetchone()
-
-		if result is not None:
-			return redirect(url_for('organisation.project_dashboard',organisation=slug, project_id=project_id))
 
 		with db_conn.cursor() as cursor:
 			sql = 'SELECT * FROM `project` WHERE `slug`=%s and `project_id`=%s'
