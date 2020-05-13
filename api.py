@@ -5,6 +5,8 @@ import json
 
 from flask import Blueprint, request
 
+import uuid
+
 import db
 from utils import check_missing_keys
 
@@ -275,24 +277,56 @@ def register_new_event():
     custom_data = request_body.get('custom_params', None)
     custom_data = json.dumps(custom_data)
 
-    db_connection = db.get_database_connection()
-    with db_connection.cursor() as cursor:
-        cursor.execute(get_project_from_api_key_sql, (api_key,))
-        result = cursor.fetchone()
-        if not result:
-            response["error"] = "Invalid API key"
-            return response, 404
+    session_id = session.get("session_id",None)
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        db_connection = db.get_database_connection()
 
-        project_id = result.get("project_id", None)
+        with db_connection.cursor() as cursor:
+            cursor.execute(get_project_from_api_key_sql, (api_key,))
+            result = cursor.fetchone()
+            if not result:
+                response["error"] = "Invalid API key"
+                return response, 404
 
-        insert_new_event_sql = "INSERT INTO `web_event` ( `project_id`, `origin_id`,`user_agent`, \
-                                `page_url`, `event_type`, `custom_data`) VALUES \
-                                (%s, %s, %s, %s, %s, %s)"
+            project_id = result.get("project_id", None)
 
-        cursor.execute(insert_new_event_sql, (project_id, request_body["origin_id"],
-                                                user_agent, request_body["page_url"], request_body["event_type"],
-                                                custom_data))
-        db_connection.commit()
+            insert_new_session = "INSERT INTO `session` ( `session_id`, `origin_id`, \
+                                    `project_id`, `start_page`, `end_page`) VALUES \
+                                    (%s, %s, %s, %s, %s)"
+
+            cursor.execute(insert_new_session, (session_id, request_body["origin_id"], project_id, 
+                                                    request_body["page_url"], request_body["page_url"]))
+            db_connection.commit()
+
+            insert_new_event_sql = "INSERT INTO `web_event` ( `session_id`, `user_agent`, \
+                                    `page_url`, `event_type`, `custom_data`) VALUES \
+                                    (%s, %s, %s, %s, %s, %s)"
+
+            cursor.execute(insert_new_event_sql, (session_id,
+                                                    user_agent, request_body["page_url"], request_body["event_type"],
+                                                    custom_data))
+            db_connection.commit()
+
+    else:
+        end_time = datetime.datetime.now()
+        end_time = end_time.strftime(""%Y-%m-%d %H:%M:%S"")
+
+        with db_connection.cursor() as cursor:
+            update_exist_session = "UPDATE `session` SET `end_time`=%s, `end_page`=%s WHERE `session_id`=%s"
+            cursor.execute(update_exist_session, (end_time, request_body["page_url"], session_id, ))
+            db_connection.commit()
+
+            insert_new_event_sql = "INSERT INTO `web_event` ( `session_id`, `user_agent`, \
+                                    `page_url`, `event_type`, `custom_data`) VALUES \
+                                    (%s, %s, %s, %s, %s, %s)"
+
+            cursor.execute(insert_new_event_sql, (session_id,
+                                                    user_agent, request_body["page_url"], request_body["event_type"],
+                                                    custom_data))
+            db_connection.commit()
+
+
 
         response["success"] = True
     return response
