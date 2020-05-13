@@ -27,27 +27,30 @@ def login_required(f):
 
         with db_conn.cursor() as cursor:
             sql = ("SELECT"
-                        " belongs_to.slug, project.project_id"
+                        " belongs_to.slug, project.project_id, organisation.name"
                     " FROM"
                         " `user`"
                     " LEFT OUTER JOIN"
                         " belongs_to ON user.username = belongs_to.username"
                     " LEFT OUTER JOIN"
                         " project ON project.slug = belongs_to.slug"
+                    " LEFT OUTER JOIN"
+                        " organisation ON organisation.slug = belongs_to.slug"
                     " WHERE"
                         " user.username = %s;")
             cursor.execute(sql, (username, ))
             result = cursor.fetchall()
             g.user["orgs"] = {}
             g.orgs = {}
-            temp = {}
+
             if result is not None:
                 for record in result:
                     organisation_slug = record["slug"]
                     project_id = record["project_id"]
-
-                    l = g.orgs.get(organisation_slug, None) or []
-                    g.orgs[organisation_slug] = l + [project_id]
+                    org_data = g.orgs.get(organisation_slug, None) or {"name": record["name"]}
+                    l = org_data.get("projects", None) or []
+                    org_data["projects"] = l + [project_id]
+                    g.orgs[organisation_slug] = org_data
 
         return f(*args, **kwargs)
     return decorated_function
