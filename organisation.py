@@ -227,7 +227,7 @@ def view_project(slug, project_id):
 
 @blueprint.route('/<string:slug>/edit', methods=['GET','POST'])
 @auth.login_required
-def edit_orgainsation(slug):
+def edit_organisation(slug):
 
 	db_conn = db.get_database_connection()
 	with db_conn.cursor() as cursor:
@@ -236,13 +236,13 @@ def edit_orgainsation(slug):
 		response = cursor.fetchone()
 
 	if request.method == "GET":
-		return render_template('organisation/edit_orgainsation', response=response)
+		return render_template('organisation/edit_organisation.html', response=response)
 
 	elif request.method == "POST":
-		name = requst.form.get("name", None)
+		name = request.form.get("name", None)
 		if 'logo' not in request.files:
 			flash("No file part", "danger")
-			return render_template('organisation/new_organisation.html')
+			return render_template('organisation/edit_organisation.html',response=response)
 
 		logo = request.files['logo']
 

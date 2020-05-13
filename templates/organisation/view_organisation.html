@@ -32,7 +32,7 @@
 					This is your organisation page. You can view the organisation members,
 					projects etc.
 				</p>
-				<a href="#" class="btn btn-primary">Edit details</a>
+				<a href="{{ url_for('organisation.edit_organisation',slug=organisation.slug) }}" class="btn btn-primary">Edit details</a>
 			</div>
 		</div>
 		<div class="row">
