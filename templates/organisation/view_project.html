@@ -49,6 +49,7 @@
 				<div class="card-body">
 					<h4 class="card-title text-muted text-uppercase">
 						Project details
+						{% if show_results %}
 						<a class="btn btn-outline-primary btn-sm ml-3 text-right"
 							href="{{ url_for('organisation.edit_project', slug=slug, project_id=project.project_id)}}">
 							<span class="btn-inner--icon">
@@ -56,7 +57,7 @@
 							</span>
 							<span class="btn-inner--text">Edit</span>
 						</a>
-
+						{% endif %}
 					</h4>
 					<div class="card-text ml-3">
 						<div class="row">
@@ -91,7 +92,7 @@
 			</div>
 
 			
-
+			{% if show_results %}
 			<div class="input-group mb-3">
 				<div class="input-group-prepend">
 					<span class="input-group-text text-default">API Key</span>
@@ -135,6 +136,7 @@
         			</div>
     			</div>			
     		</div>
+    		{% endif %}
 
 			<div class="card">
 				<div class="card-body">

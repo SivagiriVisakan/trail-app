@@ -236,21 +236,31 @@ def view_project(slug, project_id):
 
 	set_active_org_project(slug, project_id)
 
+	user = g.user
+	username = user["username"]
+
 	if request.method == "GET":
 		db_conn = db.get_database_connection()
-
+		show_results = True
 		with db_conn.cursor() as cursor:
+			sql = 'SELECT `role` FROM `belongs_to` WHERE `username`=%s and `slug`=%s'
+			cursor.execute(sql, (username, slug, ))
+			role = cursor.fetchone()
+
+			if role["role"] == "Member":
+				show_results = False
+			
 			sql = 'SELECT * FROM `project` WHERE `slug`=%s and `project_id`=%s'
 			cursor.execute(sql, (slug, project_id, ))
 			result = cursor.fetchone()
-			return render_template('organisation/view_project.html', slug=slug, project=result) 
+			return render_template('organisation/view_project.html', slug=slug, project=result, show_results=show_results) 
 
 @blueprint.route('/<string:slug>/edit', methods=['GET','POST'])
 @auth.login_required
 def edit_organisation(slug):
 
 	set_active_org_project(slug)
-	
+
 	db_conn = db.get_database_connection()
 	with db_conn.cursor() as cursor:
 		sql = 'SELECT * FROM `organisation` WHERE `slug`=%s'
