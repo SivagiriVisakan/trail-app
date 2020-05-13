@@ -47,6 +47,7 @@
 					{% for project in organisation.projects %}
 					<a href="{{ url_for('organisation.view_project', slug=g.active_organisation, project_id=project) }}">
 					<p class="card-text">{{ project }}</p>
+					</a>
 					{% endfor %}
 				</div>
 			</div>
