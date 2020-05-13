@@ -14,8 +14,9 @@
                     <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
                         <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
                             <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
-                            <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Events</li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('organisation.view_organisation',slug=g.active_organisation) }}">{{ g.active_organisation }}</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('organisation.view_project',slug=g.active_organisation, project_id=active_project) }}">{{ active_project }}</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ "Events" }}</li>              
                         </ol>
                     </nav>
                 </div>

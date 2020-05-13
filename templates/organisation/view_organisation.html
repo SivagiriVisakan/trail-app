@@ -14,6 +14,13 @@
 
 	<!-- Header container -->
 	<div class="container-fluid">
+		<nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+			<ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+				<li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+				<li class="breadcrumb-item active" aria-current="page">{{ g.active_organisation }}</li>
+			</ol>
+		</nav>
+
 		<div class="row">
 			<div class="col-lg-1 col-1" style="min-width: 100px;">
 				<img src="{{ url_for('organisation.upload_file',filename=organisation.logo) }}"
