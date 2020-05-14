@@ -7,3 +7,6 @@ DATABASE = {
     "NAME": os.getenv("DB_NAME", "flask_test")
 }
 SECRET_KEY=os.getenv("SECRET_KEY", None)
+
+# It is set here for the time being, to take the load of our servers
+TRAIL_JS_CLIENT_URL = "https://sivagirivisakan.github.io/trail-app/trail-client.js"
