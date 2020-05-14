@@ -1,9 +1,9 @@
-const todayDate = new Date("05 Apr 2020"); // Today's date, to get the metrics for today
+const todayDate = new Date(); // Today's date, to get the metrics for today
 
-const yesterdayDate = new Date("05 Apr 2020"); // We get the metrics from yesterday also to compare and show 
+const yesterdayDate = new Date(); // We get the metrics from yesterday also to compare and show 
 yesterdayDate.setDate(yesterdayDate.getDate() - 1);
 
-const startDate = new Date("05 Apr 2020"); // We get the metrics from the past week until today, which is used to plot the graph 
+const startDate = new Date(); // We get the metrics from the past week until today, which is used to plot the graph 
 startDate.setDate(startDate.getDate() - 6);
 
 var metrics = {} // To store the fetched data
