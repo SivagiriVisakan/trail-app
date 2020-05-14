@@ -81,6 +81,12 @@
             <a class="dropdown-item"
               href="{{ url_for(request.endpoint, project_id=project, organisation=g.active_organisation, slug=g.active_organisation) }}">{{ project }}</a>
             {% endfor %}
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="{{ url_for('organisation.new_project', slug=g.active_organisation) }}">
+              <i class="fa fa-plus"></i>
+              New project
+            </a>
+
           </div>
         </div>
 
