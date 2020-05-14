@@ -1,0 +1,36 @@
+{% extends "layouts/base_layout.html" %}
+
+{% block title %}404 Page not found - Trail{% endblock %}
+{% block content %}
+<div class="main-content" style="height: 100vh;">
+    {% if g.user %}
+    <!-- Topnav -->
+    {% include "partials/signed_in_top_nav.html" %}
+
+    {% endif %}
+    <div class="d-flex" style="height: 95vh;">
+        <div class="container-fluid align-self-center">
+            <div class="row justify-content-md-center">
+                <img src="/static/assets/images/404.svg" alt="">
+            </div>
+            <div class="row justify-content-md-center">
+                <p class="display-4 font-weight-normal text-center">
+                    The page you are looking for is not found.<br>
+                </p>
+            </div>
+            <div class="row justify-content-md-center">
+                <p class="d-block"> It seems like you've wandered too far and got lost in the trail.</p>
+
+            </div>
+
+
+            <div class="row justify-content-md-center">
+                <a href="/" class="btn btn-primary">
+                    Let's go home
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

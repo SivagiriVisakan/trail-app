@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_bcrypt import Bcrypt
 
 import auth
@@ -34,3 +34,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
