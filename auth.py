@@ -97,7 +97,7 @@ def login():
             session["username"] = user["username"]
             if request.args.get('next', None):
                 return redirect(request.args["next"])
-            return redirect(url_for('auth.my_details'))
+            return redirect(url_for('organisation.organisation'))
 
 @blueprint.route('/logout')
 def logout():
@@ -167,7 +167,7 @@ def signup():
                         cursor.execute("INSERT INTO `user`(`username`,`email`,`first_name`,`last_name`,`password`) Values (%s, %s, %s, %s, %s)", (username, email, first_name, last_name, password_hash))
                         db_conn.commit();
                     session["username"] = username
-                    return redirect(url_for('auth.my_details'))
+                    return redirect(url_for('organisation.organisation'))
         else:
             if not username:
                 flash("Enter Username", "danger")
