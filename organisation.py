@@ -603,3 +603,86 @@ def get_event_details(project_id, start_time, end_time, event_type=None):
         print(result_to_return)
         return result_to_return
 
+@blueprint.route('/<string:organisation>/project/<string:project_id>/sessions/')
+@auth.login_required
+@auth.check_valid_org_and_project
+def project_sessions_dashboard(organisation, project_id):
+    set_active_org_project(organisation, project_id)
+
+    start_timestamp = request.args.get(
+        "start_time") or datetime.datetime.now().timestamp()
+    start_timestamp = float(start_timestamp)
+    start_time = datetime.datetime.utcfromtimestamp(start_timestamp)
+    start_time += datetime.timedelta(days=1)
+
+    end_timestamp = request.args.get(
+        "end_time") or datetime.datetime.now().timestamp()
+    end_timestamp = float(end_timestamp)
+    end_time = datetime.datetime.utcfromtimestamp(end_timestamp)
+    end_time += datetime.timedelta(days=1)
+
+    if 'start_time' not in request.args or 'end_time' not in request.args:
+
+        return redirect(url_for('organisation.project_sessions_dashboard', organisation=organisation, project_id=project_id,
+                                start_time=start_timestamp, end_time=end_timestamp))
+    db_conn = db.get_database_connection()
+    data = {}
+    sessions_chart_data = {}
+    with db_conn.cursor(cursor=None) as cursor:
+
+        sql = ('SELECT count(*) AS count FROM `session`'
+               ' WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s)')
+
+        cursor.execute(
+            sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+        result = cursor.fetchone()
+        data["total_sessions"] = result["count"]
+
+        sql = ('SELECT DATE(start_time) AS date, count(*) AS count FROM `session`'
+               ' WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) GROUP BY DATE(start_time)')
+
+        cursor.execute(
+            sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+        result = cursor.fetchall()
+
+        # We need value zero for missing dates
+        total_days = (end_time-start_time).days+1
+        all_dates_data = {(start_time+datetime.timedelta(days=i)
+                           ).strftime("%d %b"): 0 for i in range(total_days)}
+
+        dates_from_data = {record["date"].strftime(
+            "%d %b"): record["count"] for record in result}
+        sessions_chart_data = {**all_dates_data, **dates_from_data}
+
+        sql = ("SELECT JSON_EXTRACT(custom_data, '$.OS') AS OS, COUNT(*) AS count"
+               " FROM `session` s INNER JOIN "
+                    " (SELECT session_id, custom_data FROM web_event WHERE event_type='pageview' GROUP BY session_id, custom_data) w"
+                " ON s.session_id=w.session_id WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s)"
+                " GROUP BY OS ORDER BY count DESC LIMIT 5")
+
+
+        cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+        result = cursor.fetchall()
+
+        session_os_data = {record["OS"]:record["count"] for record in result}
+
+
+        sql = ("SELECT JSON_EXTRACT(custom_data, '$.browser') AS browser, COUNT(*) AS count"
+               " FROM `session` s INNER JOIN "
+                    " (SELECT session_id, custom_data FROM web_event WHERE event_type='pageview' GROUP BY session_id, custom_data) w"
+                " ON s.session_id=w.session_id WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s)"
+                " GROUP BY browser ORDER BY count DESC LIMIT 5")
+
+
+        cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+        result = cursor.fetchall()
+
+        session_browser_data = {record["browser"]:record["count"] for record in result}
+
+
+    return render_template('projects/sessions_dashboard.html', template_context={"project_id": project_id, "organisation": organisation,
+                                                                                 "start_date": start_time, "end_date": end_time, "data": data},
+                                                                                 sessions_chart_data=sessions_chart_data,
+                                                                                 session_os_data=session_os_data,
+                                                                                 session_browser_data=session_browser_data
+                                                                                 )
