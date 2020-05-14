@@ -68,7 +68,7 @@ def check_valid_org_and_project(f):
             # This shouldn't happen, all the endpoints using this decorator must use login_required
             # But just in case.
             return redirect(url_for('auth.login', next=request.url))
-        organisation = request.view_args.get('organisation', None) or request.view.get('slug', None)
+        organisation = request.view_args.get('organisation', None) or request.view_args.get('slug', None)
         project_id = request.view_args.get('project_id', None)
 
         if organisation in g.orgs:

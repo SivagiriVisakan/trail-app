@@ -17,7 +17,6 @@ blueprint = Blueprint('organisation', __name__, url_prefix='/')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -69,6 +68,7 @@ def upload_file(filename):
 
 @blueprint.route('/<string:slug>', methods=["GET", "POST"])
 @auth.login_required
+@auth.check_valid_org_and_project
 def view_organisation(slug):
 
     user = g.user
@@ -164,6 +164,7 @@ def view_organisation(slug):
 
 @blueprint.route('/<string:slug>/remove_member/<string:member_name>', methods=['GET'])
 @auth.login_required
+@auth.check_valid_org_and_project
 def remove_member(slug, member_name):
     if request.method == "GET":
         user = g.user
@@ -208,6 +209,7 @@ def testing(organisation_slug):
 
 @blueprint.route('/<string:slug>/project/<string:project_id>/', methods=['GET', 'POST'])
 @auth.login_required
+@auth.check_valid_org_and_project
 def view_project(slug, project_id):
 
     set_active_org_project(slug, project_id)
@@ -234,6 +236,7 @@ def view_project(slug, project_id):
 
 @blueprint.route('/<string:slug>/edit', methods=['GET', 'POST'])
 @auth.login_required
+@auth.check_valid_org_and_project
 def edit_organisation(slug):
 
     set_active_org_project(slug)
@@ -292,6 +295,7 @@ def edit_organisation(slug):
 
 @blueprint.route('/<string:slug>/project/<string:project_id>/edit', methods=['GET', 'POST'])
 @auth.login_required
+@auth.check_valid_org_and_project
 def edit_project(slug, project_id):
 
     user = g.user
@@ -338,6 +342,7 @@ def edit_project(slug, project_id):
 
 @blueprint.route('/<string:slug>/project/new', methods=['GET', 'POST'])
 @auth.login_required
+@auth.check_valid_org_and_project
 def new_project(slug):
     if request.method == "GET":
         return render_template('organisation/new_project.html', slug=slug)
@@ -409,6 +414,7 @@ def new_project(slug):
 
 @blueprint.route('/<string:slug>/project/<string:project_id>/get-api', methods=["GET"])
 @auth.login_required
+@auth.check_valid_org_and_project
 def get_api(slug, project_id):
     if request.method == "GET":
         response = {}
@@ -494,6 +500,7 @@ def new_organisation():
 
 @blueprint.route('/<string:organisation>/project/<string:project_id>/dashboard/')
 @auth.login_required
+@auth.check_valid_org_and_project
 def project_dashboard(organisation, project_id):
     set_active_org_project(organisation, project_id)
     return render_template('projects/home_dashboard.html',
@@ -503,6 +510,7 @@ def project_dashboard(organisation, project_id):
 # TODO: Restrict access to projects based on user
 @blueprint.route('/<string:organisation>/project/<string:project_id>/events/')
 @auth.login_required
+@auth.check_valid_org_and_project
 def project_events_dashboard(organisation, project_id):
     set_active_org_project(organisation, project_id)
     event_type = request.args.get('event_type') or None
