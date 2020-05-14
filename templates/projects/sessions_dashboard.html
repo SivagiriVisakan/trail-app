@@ -1,0 +1,282 @@
+{% extends "layouts/dashboard_base_layout.html" %}
+{% set active_page = "Sessions" %}
+{% set show_select_project_dropdown = true %}
+
+{% block title %}Sessions &middot; {{ template_context.project_id }} | Trail{% endblock %}
+
+{% block content %}
+<div class="header bg-primary pb-6">
+    <div class="container-fluid">
+        <div class="header-body">
+            <div class="row align-items-center py-4">
+                <div class="col-lg-12 col-12">
+                    <h6 class="h2 text-white d-inline-block mb-0">{{ template_context.project_id | title }}</h6>
+                    <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+                        <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+                            <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+                            <li class="breadcrumb-item"><a
+                                    href="{{ url_for('organisation.view_organisation',slug=g.active_organisation) }}">{{ g.active_organisation }}</a>
+                            </li>
+                            <li class="breadcrumb-item"><a
+                                    href="{{ url_for('organisation.view_project',slug=g.active_organisation, project_id=active_project) }}">{{ active_project }}</a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ "Sessions" }}</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+            <div class="row pl-3">
+                <div class="col col-xl-6 col-md-6">
+
+                    <div class="input-daterange datepicker row align-items-center">
+                        <div class="col">
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="ni ni-calendar-grid-58"></i> &nbsp;
+                                            From</span>
+                                    </div>
+                                    <input class="form-control" id="start-date-input" placeholder="Start date"
+                                        type="text" value="{{ template_context['start_date'].strftime('%m-%d-%Y') }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="form-group pl-2">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="ni ni-calendar-grid-58"></i>&nbsp;
+                                            To</span>
+                                    </div>
+                                    <input class="form-control" id="end-date-input" placeholder="End date" type="text"
+                                        value="{{ template_context['end_date'].strftime('%m-%d-%Y') }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col col-xl-1 col-md-6 pb-3">
+                    <button class="btn btn-secondary" onclick="handleRefreshClick()">Refresh</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid mt-4">
+    <div class="row justify-content-md-center">
+
+        <div class="col-xl-8">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title text-muted text-uppercase">
+                        Overview
+                    </h4>
+
+                    <div class="card-text ml-3">
+                        <div class="row">
+                            <div class="col">
+                                <p class=" text-uppercase text-gray mb-0">
+                                    Total sessions
+                                </p>
+                                <h3 class="text-default font-weight-normal">
+                                    {{ template_context["data"]["total_sessions"] }}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-tile text-muted text-uppercase">Sessions by date</h4>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        <!-- Chart wrapper -->
+                        <canvas id="chart-sessions" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-tile text-muted text-uppercase">Most used Operating system</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        <!-- Chart wrapper -->
+                        <canvas id="chart-sessions-os" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-tile text-muted text-uppercase">Most used browser</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart">
+                        <!-- Chart wrapper -->
+                        <canvas id="chart-sessions-browser" class="chart-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{{ request.endpoint }}
+
+</div>
+{% endblock content%}
+
+{% block extra_js %}
+<script>
+    var urlFormat = "{{ url_for('organisation.project_sessions_dashboard', _external=True, organisation=template_context.organisation, project_id=template_context.project_id,
+    start_time = 'START', end_time = 'END') }}";
+    urlFormat = urlFormat.replace(/&amp;/g, '&');
+
+
+    // define the chart data
+    var sessionChartData = {
+        labels: [{% for date, _ in sessions_chart_data.items() %}
+    "{{date}}",
+        {% endfor %}],
+    datasets: [{
+        label: '{{ legend }}',
+        fill: true,
+        lineTension: 0.1,
+        backgroundColor: "rgba(75,192,192,0.4)",
+        borderColor: "rgba(75,192,192,1)",
+        borderCapStyle: 'butt',
+        borderDash: [],
+        borderDashOffset: 0.0,
+        borderJoinStyle: 'miter',
+        pointBorderColor: "rgba(75,192,192,1)",
+        pointBackgroundColor: "#fff",
+        pointBorderWidth: 1,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: "rgba(75,192,192,1)",
+        pointHoverBorderColor: "rgba(220,220,220,1)",
+        pointHoverBorderWidth: 2,
+        pointRadius: 1,
+        pointHitRadius: 10,
+        data: [
+            {% for date, count in sessions_chart_data.items() %}
+                        {{ count }},
+    {% endfor %}
+    ],
+        spanGaps: false
+    }]
+  }
+
+    var browserChart = {
+        type: 'doughnut',
+        options: {
+            cutoutPercentage: 50,
+            legend: {
+                display: true,
+                position: 'top'
+            }
+
+        },
+        data: {}
+    };
+    browserChart.data.datasets = [{
+        label: "Users",
+        backgroundColor: ["#20c997CC"],
+        data: [
+            {% for _, count in session_browser_data.items() %}
+                            {{ count }},
+            {% endfor %}
+            ]
+        }];
+
+    browserChart.data.labels = [
+                    {% for browser, _ in session_browser_data.items() %}
+                        "{{ browser|replace('\"','') }}",
+                    {% endfor %}
+                    ];
+
+
+    var osChart = {
+        type: 'doughnut',
+        options: {
+            cutoutPercentage: 50,
+            legend: {
+                display: true,
+                position: 'top'
+            }
+
+        },
+        data: {}
+    };
+    osChart.data.datasets = [{
+        label: "Users",
+        backgroundColor: ["#20c997CC"],
+        data: [
+            {% for _, count in session_os_data.items() %}
+                {{ count }},
+    {% endfor %}
+    ]
+            }];
+    osChart.data.labels = [
+        {% for OS, _ in session_os_data.items() %}
+    "{{ OS|replace('\"','') }}",
+        {% endfor %}
+            ];
+
+    // get chart canvas
+    var ctx = document.getElementById("chart-sessions").getContext("2d");
+
+    // create the chart using the chart canvas
+    var sessionChart = new Chart(ctx, {
+        type: 'line',
+        data: sessionChartData,
+    });
+
+    // get chart canvas
+    ctx = document.getElementById("chart-sessions-os").getContext("2d");
+
+    // create the chart using the chart canvas
+    var sessionOSChart = new Chart(ctx, osChart);
+
+    ctx = document.getElementById("chart-sessions-browser").getContext("2d");
+    // create the chart using the chart canvas
+    var sessionBrowserChart = new Chart(ctx, browserChart);
+
+    function handleRefreshClick() {
+        let startDateInput = document.getElementById('start-date-input').value;
+        let endDateInput = document.getElementById('end-date-input').value;
+
+        let startDateTimestamp = Math.floor(new Date(startDateInput).getTime() / 1000);
+        let endDateTimestamp = Math.floor(new Date(endDateInput).getTime() / 1000);
+
+        let url = urlFormat.replace('START', startDateTimestamp.toString())
+        url = url.replace('END', endDateTimestamp.toString())
+
+        window.location.href = url;
+    }
+</script>
+
+{% endblock extra_js %}
