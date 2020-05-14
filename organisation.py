@@ -539,213 +539,75 @@ def project_events_dashboard(organisation, project_id):
 
 
 def get_event_details(project_id, start_time, end_time, event_type=None):
-	"""
+    """
 
-	"""
-	db_conn = db.get_database_connection()
-	result_to_return = []
-	resulting_custom_data_keys = []
-	events_to_query = []
-	with db_conn.cursor(cursor=None) as cursor:
-		if event_type is None:
-			# No event type passed, so we get the details of all the events
-			sql = ('SELECT event_type, count(*) as total_events_count FROM web_event INNER JOIN `session`'
-					' ON web_event.session_id=session.session_id WHERE project_id=%s'
-					' AND DATE(time_entered) >= DATE(%s) AND DATE(time_entered) <= DATE(%s) GROUP BY event_type')
+    """
+    db_conn = db.get_database_connection()
+    result_to_return = []
+    resulting_custom_data_keys = []
+    events_to_query = []
+    with db_conn.cursor(cursor=None) as cursor:
+        if event_type is None:
+            # No event type passed, so we get the details of all the events
+            sql = ('SELECT event_type, count(*) as total_events_count FROM web_event INNER JOIN `session`'
+                   ' ON web_event.session_id=session.session_id WHERE project_id=%s'
+                   ' AND DATE(time_entered) >= DATE(%s) AND DATE(time_entered) <= DATE(%s) GROUP BY event_type')
 
-			cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
-		else:
-			sql = ('SELECT event_type, count(*) as total_events_count FROM web_event INNER JOIN `session`'
-					' ON web_event.session_id=session.session_id WHERE project_id=%s'
-					' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)')
-			cursor.execute(sql, (project_id, event_type, start_time.isoformat(), end_time.isoformat()))
+            cursor.execute(
+                sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+        else:
+            sql = ('SELECT event_type, count(*) as total_events_count FROM web_event INNER JOIN `session`'
+                   ' ON web_event.session_id=session.session_id WHERE project_id=%s'
+                   ' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)')
+            cursor.execute(sql, (project_id, event_type,
+                                 start_time.isoformat(), end_time.isoformat()))
 
-		result = cursor.fetchall()
-		result_to_return = result # The DictCursor we use returns the data in required format
+        result = cursor.fetchall()
+        result_to_return = result  # The DictCursor we use returns the data in required format
 
-		for event_dict in result_to_return:
-			# Query the page_wise events count
-			sql = ('SELECT page_url, count(*) as total_events_count FROM web_event INNER JOIN `session`'
-					' ON web_event.session_id=session.session_id WHERE project_id=%s'
-					' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s) GROUP BY page_url')
-			cursor.execute(sql, (project_id, event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
-			result = cursor.fetchall()
-			event_dict["page_wise"] = result
+        for event_dict in result_to_return:
+            # Query the page_wise events count
+            sql = ('SELECT page_url, count(*) as total_events_count FROM web_event INNER JOIN `session`'
+                   ' ON web_event.session_id=session.session_id WHERE project_id=%s'
+                   ' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s) GROUP BY page_url')
+            cursor.execute(sql, (project_id, event_dict["event_type"], start_time.isoformat(
+            ), end_time.isoformat()))
+            result = cursor.fetchall()
+            event_dict["page_wise"] = result
 
+            resulting_custom_data_keys = []
 
-			resulting_custom_data_keys = []
+            sql = ('SELECT JSON_KEYS(custom_data)  as custom_keys from web_event INNER JOIN `session` '
+                   ' ON web_event.session_id=session.session_id where project_id=%s'
+                   ' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)'
+                   ' group by custom_keys')
 
-			sql = ('SELECT JSON_KEYS(custom_data)  as custom_keys from web_event INNER JOIN `session` '
-					' ON web_event.session_id=session.session_id where project_id=%s'
-					' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)'
-					' group by custom_keys')
+            cursor.execute(sql, (project_id, event_dict["event_type"], start_time.isoformat(
+            ), end_time.isoformat()))
+            result = cursor.fetchall()
+            for row in result:
+                resulting_custom_data_keys.extend(
+                    json.loads(row["custom_keys"]))
 
-			cursor.execute(sql, (project_id, event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
-			result = cursor.fetchall()
-			for row in result:
-				resulting_custom_data_keys.extend(json.loads(row["custom_keys"]))
+            # Eliminate duplicates
+            resulting_custom_data_keys = set(resulting_custom_data_keys)
+            custom_data_key_value_aggregation = {}
+            for key in resulting_custom_data_keys:
+                sql = 'SELECT JSON_EXTRACT(custom_data, %s) as key_value, count(*) as key_value_count from \
+                        web_event INNER JOIN `session` ON web_event.session_id=session.session_id where project_id=%s AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)  group by key_value'
+                json_path_for_mysql = f'$.{key}'
+                cursor.execute(sql, (json_path_for_mysql, project_id,
+                                     event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
 
-			# Eliminate duplicates
-			resulting_custom_data_keys = set(resulting_custom_data_keys)
-			custom_data_key_value_aggregation = {}
-			for key in resulting_custom_data_keys:
-				sql = 'SELECT JSON_EXTRACT(custom_data, %s) as key_value, count(*) as key_value_count from \
-						web_event INNER JOIN `session` ON web_event.session_id=session.session_id where project_id=%s AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)  group by key_value'
-				json_path_for_mysql = f'$.{key}'
-				cursor.execute(sql, (json_path_for_mysql, project_id, event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
+                result = cursor.fetchall()
+                custom_data_key_value_aggregation[key] = result
+            event_dict["custom_data"] = custom_data_key_value_aggregation
 
-				result = cursor.fetchall()
-				custom_data_key_value_aggregation[key] = result
-			event_dict["custom_data"] = custom_data_key_value_aggregation
+        return result_to_return
 
-		print(result_to_return)
-		return result_to_return
-
-@blueprint.route('/<string:organisation>/project/<string:project_id>/sessions/')
-@auth.login_required
-@auth.check_valid_org_and_project
-def project_sessions_dashboard(organisation, project_id):
-	set_active_org_project(organisation, project_id)
-
-	start_timestamp = request.args.get(
-		"start_time") or datetime.datetime.now().timestamp()
-	start_timestamp = float(start_timestamp)
-	start_time = datetime.datetime.utcfromtimestamp(start_timestamp)
-	start_time += datetime.timedelta(days=1)
-
-	end_timestamp = request.args.get(
-		"end_time") or datetime.datetime.now().timestamp()
-	end_timestamp = float(end_timestamp)
-	end_time = datetime.datetime.utcfromtimestamp(end_timestamp)
-	end_time += datetime.timedelta(days=1)
-
-	if 'start_time' not in request.args or 'end_time' not in request.args:
-
-		return redirect(url_for('organisation.project_sessions_dashboard', organisation=organisation, project_id=project_id,
-								start_time=start_timestamp, end_time=end_timestamp))
-	db_conn = db.get_database_connection()
-	data = {}
-	sessions_chart_data = {}
-	with db_conn.cursor(cursor=None) as cursor:
-
-		sql = ('SELECT count(*) AS count FROM `session`'
-			   ' WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s)')
-
-		cursor.execute(
-			sql, (project_id, start_time.isoformat(), end_time.isoformat()))
-		result = cursor.fetchone()
-		data["total_sessions"] = result["count"]
-
-		sql = ('SELECT DATE(start_time) AS date, count(*) AS count FROM `session`'
-			   ' WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) GROUP BY DATE(start_time)')
-
-		cursor.execute(
-			sql, (project_id, start_time.isoformat(), end_time.isoformat()))
-		result = cursor.fetchall()
-
-		# We need value zero for missing dates
-		total_days = (end_time-start_time).days+1
-		all_dates_data = {(start_time+datetime.timedelta(days=i)
-						   ).strftime("%d %b"): 0 for i in range(total_days)}
-
-		dates_from_data = {record["date"].strftime(
-			"%d %b"): record["count"] for record in result}
-		sessions_chart_data = {**all_dates_data, **dates_from_data}
-
-		sql = ("SELECT JSON_EXTRACT(custom_data, '$.OS') AS OS, COUNT(*) AS count"
-			   " FROM `session` s INNER JOIN "
-					" (SELECT session_id, custom_data FROM web_event WHERE event_type='pageview' GROUP BY session_id, custom_data) w"
-				" ON s.session_id=w.session_id WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s)"
-				" GROUP BY OS ORDER BY count DESC LIMIT 5")
-
-
-		cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
-		result = cursor.fetchall()
-
-		session_os_data = {record["OS"]:record["count"] for record in result}
-
-
-		sql = ("SELECT JSON_EXTRACT(custom_data, '$.browser') AS browser, COUNT(*) AS count"
-			   " FROM `session` s INNER JOIN "
-					" (SELECT session_id, custom_data FROM web_event WHERE event_type='pageview' GROUP BY session_id, custom_data) w"
-				" ON s.session_id=w.session_id WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s)"
-				" GROUP BY browser ORDER BY count DESC LIMIT 5")
-
-
-		cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
-		result = cursor.fetchall()
-
-		session_browser_data = {record["browser"]:record["count"] for record in result}
-
-		sql = ("SELECT COUNT(*) AS count, start_page, end_page FROM session \
-				WHERE project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
-				GROUP BY start_page, end_page ORDER BY count DESC")
-
-		cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
-		result = cursor.fetchall()
-
-		entry_and_exit_point = {}
-		index = 0
-		for row in result:
-			index = index + 1
-			entry_and_exit_point[index] = row
-
-		sql = ("SELECT COUNT(*) AS count, start_page FROM session WHERE project_id=%s \
-				AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
-				GROUP BY start_page ORDER BY count DESC")
-
-		cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
-		result = cursor.fetchall()
-
-		entry_point = {}
-		for row in result:
-			entry_point[row["start_page"]] = row["count"]
-
-		sql = ("SELECT COUNT(*) AS count, end_page FROM session WHERE project_id=%s \
-				AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
-				GROUP BY end_page ORDER BY count DESC")
-
-		cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
-		result = cursor.fetchall()
-
-		exit_point = {}
-		for row in result:
-			exit_point[row["end_page"]] = row["count"] 
-
-		sql = ("SELECT start_page as page_url , COUNT(*) AS count FROM session WHERE project_id=%s \
-				AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
-				GROUP BY start_page")       
-		cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
-		result = cursor.fetchall()
-
-		bounce_numerator = {}
-		for row in result:
-			bounce_numerator[row["page_url"]] = row["count"]
-
-		sql = ("SELECT page_url, COUNT(*) AS count FROM web_event WHERE page_url IN \
-				(SELECT start_page FROM session WHERE start_page=end_page AND project_id = %s AND \
-					DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) ) \
-				AND event_type='pageview' GROUP BY page_url")
-		cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
-		result = cursor.fetchall()
-
-		bounce_denominator = {}
-		for row in result:
-			bounce_denominator[row["page_url"]] = row["count"]
-
-		bounce_rate = {}
-		for page_url, count in bounce_denominator.items():
-			numerator = bounce_numerator[page_url]
-			bounce_rate[page_url] = str(round((numerator/count) * 100, 2)) + '%'
-
-
-	return render_template('projects/sessions_dashboard.html', template_context={"project_id": project_id, "organisation": organisation,
-																				 "start_date": start_time, "end_date": end_time, "data": data},
-																				 sessions_chart_data=sessions_chart_data,
-																				 session_os_data=session_os_data,
-																				 session_browser_data=session_browser_data,
-																				 entry_and_exit_point=entry_and_exit_point,
-																				 entry_point=entry_point,
-																				 exit_point=exit_point,
-																				 bounce_rate=bounce_rate
-																				 )
+# The import is being done here and not at the top for the time being, because the 
+# SessionDashboard imports a function from this module to it.
+# Ideally, it should be moved into a seperate file and this import moved to the top 
+from views.dashboard.session import SessionDashboard
+blueprint.add_url_rule('/<string:organisation>/project/<string:project_id>/sessions/',
+                 view_func=SessionDashboard.as_view('project_sessions_dashboard'), methods=['GET',])
