@@ -239,6 +239,13 @@ def add_cors_header(response):
     return response
 
 
+def get_custom_data_from_user_agent(user_agent):
+    parsed_ua = ua.parse(user_agent)
+
+    return {"OS": parsed_ua.os.family,
+            "browser": parsed_ua.browser.family,
+            "device": parsed_ua.device.family}
+
 @blueprint.route('/v1/register-new', methods=["POST"])
 def register_new_event():
     """
@@ -293,7 +300,11 @@ def register_new_event():
 
     origin_id = sha256(origin_id_components.encode()).hexdigest()
 
-    custom_data = request_body.get('custom_params', None)
+    custom_data = request_body.get('custom_params', {})
+    if(request_body["event_type"] == 'pageview'):
+        # If it is a pageview event, then along with user data, we also include our customised info.
+        pageview_custom_data = get_custom_data_from_user_agent(user_agent)
+        custom_data = {**custom_data, **pageview_custom_data}
     custom_data = json.dumps(custom_data)
 
     session_id = request_body.get("session_id", None)
