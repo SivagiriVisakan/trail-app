@@ -679,10 +679,24 @@ def project_sessions_dashboard(organisation, project_id):
 
         session_browser_data = {record["browser"]:record["count"] for record in result}
 
+        sql = ("SELECT COUNT(*) AS count, start_page, end_page FROM session \
+        		WHERE project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
+        		GROUP BY start_page, end_page")
+
+        cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+        result = cursor.fetchall()
+
+        entry_and_exit_point = {}
+        index = 0
+        for row in result:
+        	index = index + 1
+        	entry_and_exit_point[index] = row
+
 
     return render_template('projects/sessions_dashboard.html', template_context={"project_id": project_id, "organisation": organisation,
                                                                                  "start_date": start_time, "end_date": end_time, "data": data},
                                                                                  sessions_chart_data=sessions_chart_data,
                                                                                  session_os_data=session_os_data,
-                                                                                 session_browser_data=session_browser_data
+                                                                                 session_browser_data=session_browser_data,
+                                                                                 entry_and_exit_point=entry_and_exit_point
                                                                                  )

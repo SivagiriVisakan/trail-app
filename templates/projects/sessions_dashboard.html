@@ -141,7 +141,35 @@
                     </div>
                 </div>
             </div>
-
+            <div class="card">
+                <div class="card-header border-0">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-tile text-muted text-uppercase">Entry and Exit Pages</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush" id="top-events-table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Entry Page</th>
+                                <th scope="col">Exit Page</th>
+                                <th scope="col">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for index, index_value in entry_and_exit_point.items() %}
+                            <tr>
+                                <td class="display-4">{{ index_value["start_page"] }}</td>
+                                <td class="display-4">{{ index_value["end_page"] }}</td>
+                                <td>{{ index_value["count"] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
