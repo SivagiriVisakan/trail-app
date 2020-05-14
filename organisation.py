@@ -17,34 +17,6 @@ blueprint = Blueprint('organisation', __name__, url_prefix='/')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-def permission_required(f):
-	@wraps(f)
-	def wrapper(organisation, project_id, *args, **kwargs):
-		result = get_slug(organisation)
-		if result is not None:
-			user = g.user
-			username = user["username"]
-			db_conn = db.get_database_connection()
-			with db_conn.cursor() as cursor:
-				sql = 'SELECT username, slug FROM belongs_to WHERE username=%s and slug=%s'
-				cursor.execute(sql, (username, organisation))
-				records = cursor.fetchone()
-			if records is not None:
-				with db_conn.cursor() as cursor:
-					sql = 'SELECT slug, project_id FROM project WHERE slug=%s and project_id=%s'
-					cursor.execute(sql, (organisation, project_id))
-					fetch = cursor.fetchone()
-				if fetch is not None:
-					f(*args, **kwargs)
-				else:
-					return "slug do not have this project"
-			else:
-				return "user is not in the working in the organisation"				
-
-		else:
-			return "organisation not found...404 page not found"
-	return wrapper
-
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
