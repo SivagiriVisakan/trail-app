@@ -1,0 +1,86 @@
+{% extends "layouts/base_layout.html" %}
+
+{% block title %}Profile - Trail{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="main-content" id="panel">
+  <!-- Topnav -->
+  {% include "partials/signed_in_top_nav.html" %}
+</div>
+
+<div class="header pb-6 d-flex align-items-center" 
+	style="min-height: 500px;
+        background: url('/static/assets/images/home_header.svg') var(--primary) no-repeat;
+        background-size: 35%;
+        background-position: center right 15%">
+  <!-- Mask -->
+  <!-- <span class="mask bg-gradient-default opacity-8"></span> -->
+  <!-- Header container -->
+  <div class="container-fluid d-flex align-items-center">
+    <div class="row">
+      <div class="col-lg-7 col-md-10">
+        <h1 class="display-2 text-white">Hello {{ profile.username }}!</h1>
+        <p class="text-white mt-0 mb-5">This is your profile page.You can see and edit your profile here.</p>
+        <a href="{{ url_for('organisation.organisation') }}" class="btn btn-neutral">Home</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container-fluid mt--6">
+  	<div class="row justify-content-md-center">
+		<div class="col-xl-8 order-xl-1">
+		  <div class="card">
+		    <div class="card-header">
+		      <div class="row align-items-center">
+		      	<div class="col-8">
+		      		<h3 class="mb-0">Profile details</h3>
+		      	</div>
+		      </div>
+		    </div>
+		    <div class="card-body">
+		    	<form action="{{ url_for('profile') }}" method="POST" role="form">
+		    	{% include "partials/flashed_messages.html"%}
+		    	<div class="pl-lg-4">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="input-username">First name</label>
+                        <input type="text" id="first-name" class="form-control" name="first_name" value="{{ profile.first_name }}">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="input-email">Last name</label>
+                        <input type="text" id="last-name" class="form-control" name="last_name" value="{{ profile.last_name }}">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="input-first-name">Email address</label>
+                        <input type="email" id="email-address" class="form-control" name="email" value="{{ profile.email }}">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="form-control-label" for="input-last-name">Password</label>
+                        <input type="password" id="input-password" class="form-control" name="password" placeholder="password">
+                      </div>
+                    </div>
+                    <div class="row">
+                    	<div class="col-lg-6">
+               				<input type="submit" class="btn btn-primary mt-4" value="Edit Profile">
+              			</div>
+              		</div>
+                  </div>
+                </div>
+            	</form>
+		    </div>
+		  </div>
+		</div>
+	</div>
+</div>
+
+{% endblock content %}
