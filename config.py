@@ -8,5 +8,7 @@ DATABASE = {
 }
 SECRET_KEY=os.getenv("SECRET_KEY", None)
 
+UPLOAD_FOLDER = 'static/uploads'
+
 # It is set here for the time being, to take the load of our servers
 TRAIL_JS_CLIENT_URL = "https://sivagirivisakan.github.io/trail-app/trail-client.js"

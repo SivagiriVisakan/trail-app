@@ -8,9 +8,6 @@ import db
 import organisation
 import os
 
-UPLOAD_FOLDER = 'static/uploads'
-
-
 def register_blueprints(app):
     """Register Flask blueprints."""
     app.register_blueprint(auth.blueprint)
@@ -28,8 +25,9 @@ register_blueprints(app)
 register_extensions(app)
 app.config.from_object(config)
 app.teardown_appcontext(db.close_database_connection)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Create the upload folder if it doesn't exist
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 @app.route('/')
 def hello_world():
