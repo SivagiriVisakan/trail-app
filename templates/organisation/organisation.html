@@ -49,29 +49,25 @@
           </div>
         </div>
         {% endif %}
-        {% for keys, value in response.items() %}
+        {% for _slug, _projects in response.items() %}
         <div class="card-body">
           <div class="card">
             <div class="card-header">
               <h2 class="text-primary"><a
-                  href="{{ url_for('organisation.view_organisation',slug= keys) }}">{{ keys }}</a>
-                <a href="{{ url_for('organisation.new_project', slug=keys) }}"
+                  href="{{ url_for('organisation.view_organisation',slug= keys) }}">{{ _slug }}</a>
+                <a href="{{ url_for('organisation.new_project', slug=_slug) }}"
                   class="btn btn-sm btn-outline-primary ml-3" data-toggle="tooltip" data-placement="bottom"
                   title="Create new project"><i class="fas fa-plus"></i></a>
               </h2>
             </div>
-            {% for item in value %}
-            {% for key, values in item.items() %}
-            {% if key=="project_id" %}
+            {% for _project_id in _projects %}
             <div class="card-body">
               <ul class="list-group list-group-flush">
                 <li class="list-group-item"><a
-                    href="{{ url_for('organisation.view_project', slug=key,project_id=values) }}"
-                    class="text-underline text-default">{{ values }}</a></li>
+                    href="{{ url_for('organisation.view_project', slug=_slug,project_id=_project_id) }}"
+                    class="text-underline text-default">{{ _project_id }}</a></li>
               </ul>
             </div>
-            {% endif %}
-            {% endfor %}
             {% endfor %}
           </div>
         </div>

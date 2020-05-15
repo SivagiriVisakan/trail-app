@@ -43,6 +43,7 @@ def organisation():
 	username = user["username"]
 
 	response = {}
+	result = {}
 
 	db_conn = db.get_database_connection()
 	with db_conn.cursor() as cursor:
@@ -57,7 +58,14 @@ def organisation():
 
 	for row in records:
 		if row is not None:
-			response[row["slug"]] = get_organisation(row["slug"], username)
+			result[row["slug"]] = get_organisation(row["slug"], username)
+
+	for slug, details in result.items():
+		project_id_name = []
+		for element in details:
+			project_id_name.append(element["project_id"])
+		response[slug] = project_id_name
+		
 	return render_template('organisation/organisation.html', user=user, response=response, empty=empty)
 
 
