@@ -170,6 +170,60 @@
                     </table>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-header border-0">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-tile text-muted text-uppercase">Entry Pages</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush" id="top-events-table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Entry Page</th>
+                                <th scope="col">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for page, count in entry_point.items() %}
+                            <tr>
+                                <td class="display-4">{{ page }}</td>
+                                <td>{{ count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header border-0">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-tile text-muted text-uppercase">Exit Pages</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush" id="top-events-table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Exit Page</th>
+                                <th scope="col">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for page, count in exit_point.items() %}
+                            <tr>
+                                <td class="display-4">{{ page }}</td>
+                                <td>{{ count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
