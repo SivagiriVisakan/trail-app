@@ -27,7 +27,7 @@ trailApp.init = function (apiKey) {
     trailApp.signalEvent('pageview', {})
 }
 
-trailApp.config.BASE_TRAIL_APP_URL = "http://127.0.0.1:5000/api/v1/";
+trailApp.config.BASE_TRAIL_APP_URL = "https://intense-ridge-31987.herokuapp.com/api/v1/";
 
 
 
