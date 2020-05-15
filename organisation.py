@@ -65,7 +65,7 @@ def organisation():
 		for element in details:
 			project_id_name.append(element["project_id"])
 		response[slug] = project_id_name
-		
+
 	return render_template('organisation/organisation.html', user=user, response=response, empty=empty)
 
 
@@ -353,18 +353,13 @@ def new_project(slug):
 	elif request.method == "POST":
 
 		project_id = request.form.get("project_id", None)
-		if len(project_id) > 15:
-			flash("project_id should not exceed 15 characters", "danger")
-			return render_template('organisation/new_project.html')
 
 		if project_id == "new" or project_id == "project":
 			flash("project_id is not applicable", "danger")
 			return render_template('organisation/new_project.html')
 
 		name = request.form.get("name", None)
-		if len(name) > 15:
-			flash("name should not exceed 15 characters", "danger")
-			return render_template('organisation/new_project.html')
+
 
 		description = request.form.get("description", None)
 
@@ -451,14 +446,9 @@ def new_organisation():
 	elif request.method == "POST":
 
 		slug = request.form.get("slug", None)
-		if len(slug) > 15:
-			flash("slug should not exceed 15 characters", "danger")
-			return render_template('organisation/new_organisation.html')
 
 		name = request.form.get("name", None)
-		if len(name) > 15:
-			flash("name should not exceed 15 characters", "danger")
-			return render_template('organisation/new_organisation.html')
+
 
 		if 'logo' not in request.files:
 			flash("No file part", "danger")

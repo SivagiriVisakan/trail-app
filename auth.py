@@ -135,17 +135,8 @@ def signup():
         return render_template('signup.html')
     elif request.method == "POST":
         username = request.form.get("username", None)
-        if len(username) > 20:
-            flash("Username should not exceed 20 characters","danger")
-            return render_template('signup.html')
         first_name = request.form.get("first_name", None)
-        if len(first_name) > 30:
-            flash("first_name should not exceed 30 characters","danger")
-            return render_template('signup.html')
         last_name = request.form.get("last_name", None)
-        if len(last_name) > 30:
-            flash("last_name should not exceed 30 characters","danger")
-            return render_template('signup.html')
         email = request.form.get("email", None)
         password = request.form.get("password", None)
         print(f'{username}')

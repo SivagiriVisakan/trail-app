@@ -50,7 +50,7 @@
           <form method="POST" role="form" action="{{ url_for('organisation.edit_organisation', slug=organisation.slug, ) }}" enctype="multipart/form-data" s>
             <div class="form-group">
               <label for="name-input">Organisation Name</label>
-                <input class="form-control" id="name-input" value="{{ organisation.name }}" maxlength="15" placeholder="Name" name="name" maxlength="15" type="text">
+                <input class="form-control" id="name-input" value="{{ organisation.name }}" maxlength="30" placeholder="Name" name="name" type="text">
             </div>
             <div class="text-center">
               <div class="col-lg-1 col-1" style="min-width: 100px;">
