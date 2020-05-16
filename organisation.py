@@ -98,13 +98,13 @@ def view_organisation(slug):
 	organisation["name"] = result["name"]
 
 	with db_conn.cursor() as cursor:
-		sql = 'SELECT username FROM belongs_to WHERE slug=%s';
+		sql = 'SELECT username ,role FROM belongs_to WHERE slug=%s';
 		cursor.execute(sql, (slug, ))
 		result = cursor.fetchall()
 	_member = []
 	for rows in result:
 		if rows is not None:
-			_member.append(rows["username"])
+			_member.append(rows)
 	organisation["members"] = _member
 
 	with db_conn.cursor() as cursor:

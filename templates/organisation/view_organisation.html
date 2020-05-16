@@ -82,12 +82,17 @@
 
 								<tr>
 									<td>
-										{{ member }}
+										{{ member["username"] }}
+									</td>
+									<td>
+										{{ member["role"] }}
 									</td>
 									{% if show_results %}
+									{% if member["role"]=="Member" %}
 									<td>
 										<a href="{{ url_for('organisation.remove_member', slug=organisation.slug,member_name=member) }}" class="btn btn-outline-danger btn-sm">Remove</a>
 									</td>
+									{% endif %}
 									{% endif %}
 								</tr>
 
