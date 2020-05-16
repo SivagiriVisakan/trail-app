@@ -224,6 +224,33 @@
                     </table>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-header border-0">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="card-tile text-muted text-uppercase">Page Visits</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush" id="top-events-table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Page</th>
+                                <th scope="col">Bounce Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for _page, _bounce_rate in bounce_rate.items() %}
+                            <tr>
+                                <td class="display-4">{{ _page }}</td>
+                                <td>{{ _bounce_rate }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -710,7 +710,33 @@ def project_sessions_dashboard(organisation, project_id):
 
 		exit_point = {}
 		for row in result:
-			exit_point[row["end_page"]] = row["count"]        
+			exit_point[row["end_page"]] = row["count"] 
+
+		sql = ("SELECT start_page as page_url , COUNT(*) AS count FROM session WHERE project_id=%s \
+				AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
+				GROUP BY start_page")       
+		cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+		result = cursor.fetchall()
+
+		bounce_numerator = {}
+		for row in result:
+			bounce_numerator[row["page_url"]] = row["count"]
+
+		sql = ("SELECT page_url, COUNT(*) AS count FROM web_event WHERE page_url IN \
+				(SELECT start_page FROM session WHERE start_page=end_page AND project_id = %s AND \
+					DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) ) \
+				AND event_type='pageview' GROUP BY page_url")
+		cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+		result = cursor.fetchall()
+
+		bounce_denominator = {}
+		for row in result:
+			bounce_denominator[row["page_url"]] = row["count"]
+
+		bounce_rate = {}
+		for page_url, count in bounce_denominator.items():
+			numerator = bounce_numerator[page_url]
+			bounce_rate[page_url] = str(round((numerator/count) * 100, 2)) + '%'
 
 
 	return render_template('projects/sessions_dashboard.html', template_context={"project_id": project_id, "organisation": organisation,
@@ -720,5 +746,6 @@ def project_sessions_dashboard(organisation, project_id):
 																				 session_browser_data=session_browser_data,
 																				 entry_and_exit_point=entry_and_exit_point,
 																				 entry_point=entry_point,
-																				 exit_point=exit_point
+																				 exit_point=exit_point,
+																				 bounce_rate=bounce_rate
 																				 )
