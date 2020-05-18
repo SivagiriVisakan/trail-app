@@ -150,14 +150,14 @@
 						<li>
 							Include the Trail JS script in your project. <br>
 							<pre 
-							class="mt-2">&lt;script src="{{ config["TRAIL_JS_CLIENT_URL"] }}" type="script/javascript"&gt;&lt;/script&gt;
+							class="mt-2">&lt;script src="{{ config["TRAIL_JS_CLIENT_URL"] }}"&gt;&lt;/script&gt;
 							</pre>
 						</li>
 						<li class="mt-4">
 							Set the project API key of this project and initialize the JS script.
 							<pre class="mt-2">
-&lt;script type="script/javascript"&gt;
-	trailApp.init("{{ project.api_key }}")
+&lt;script&gt;
+	trailApp.init("{{ project.api_key }}");
 &lt;/script&gt;</code>
 							</pre>
 						</li>
