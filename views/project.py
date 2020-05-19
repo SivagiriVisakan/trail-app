@@ -89,3 +89,73 @@ class EditProject(MethodView):
             return render_template('organisation/edit_project.html', slug=slug, project=result)
 
 
+class NewProject(MethodView):
+    """
+    The view to create a new project.
+    """
+
+    decorators = [auth.check_valid_org_and_project, auth.login_required]
+
+    def get(self, slug):
+        return render_template('organisation/new_project.html', slug=slug)
+
+    def post(self, slug):
+
+        user = g.user
+        username = user["username"]
+
+
+        project_id = request.form.get("project_id", None)
+
+        if project_id == "new" or project_id == "project":
+            flash("project_id is not applicable", "danger")
+            return render_template('organisation/new_project.html')
+
+        name = request.form.get("name", None)
+        description = request.form.get("description", None)
+
+        if project_id and name and description:
+            db_conn = db.get_database_connection()
+            with db_conn.cursor() as cursor:
+                sql = 'SELECT `slug`, `project_id` FROM `project` WHERE `slug`=%s and `project_id`=%s'
+                cursor.execute(sql, (slug, project_id, ))
+                result = cursor.fetchone()
+
+            if result is not None:
+                flash("project already exist in the organisation", "danger")
+                return render_template('organisation/new_project.html')
+
+            with db_conn.cursor() as cursor:
+                sql = 'SELECT `project_id` FROM `project` WHERE `project_id`=%s'
+                cursor.execute(sql, (project_id, ))
+                result = cursor.fetchone()
+
+            if result is not None:
+                flash("project_id already exist", "danger")
+                return render_template('organisation/new_project.html')
+
+            while True:
+                api_key = uuid.uuid4()
+                api_key = api_key.hex
+                with db_conn.cursor() as cursor:
+                    sql = 'SELECT `api_key` FROM `project` WHERE `api_key`=%s'
+                    cursor.execute(sql, (api_key, ))
+                    result = cursor.fetchone()
+                if result is None:
+                    break
+
+            with db_conn.cursor() as cursor:
+                cursor.execute("INSERT INTO `project`(`slug`,`project_id`,`name`,`description`,`api_key`) \
+                    Values (%s, %s, %s, %s, %s)", (slug, project_id, name, description, api_key))
+                db_conn.commit()
+                return redirect(url_for('organisation.view_project',slug=slug,project_id=project_id))
+
+        else:
+            if not project_id:
+                flash("Enter project_id", "danger")
+            if not name:
+                flash("Enter name", "danger")
+            if not description:
+                flash("Enter description", "danger")
+
+            return render_template('organisation/new_project.html')

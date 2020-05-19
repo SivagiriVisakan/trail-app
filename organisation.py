@@ -272,72 +272,6 @@ def edit_organisation(slug):
 
 
 
-@blueprint.route('/<string:slug>/project/new', methods=['GET','POST'])
-@auth.login_required
-@auth.check_valid_org_and_project
-def new_project(slug):
-	if request.method == "GET":
-		return render_template('organisation/new_project.html',slug=slug)
-
-	elif request.method == "POST":
-
-		project_id = request.form.get("project_id", None)
-
-		if project_id == "new" or project_id == "project":
-			flash("project_id is not applicable", "danger")
-			return render_template('organisation/new_project.html')
-
-		name = request.form.get("name", None)
-
-
-		description = request.form.get("description", None)
-
-		if project_id and name and description:
-			db_conn = db.get_database_connection()
-			with db_conn.cursor() as cursor:
-				sql = 'SELECT `slug`, `project_id` FROM `project` WHERE `slug`=%s and `project_id`=%s'
-				cursor.execute(sql, (slug, project_id, ))
-				result = cursor.fetchone()
-
-			if result is not None:
-				flash("project already exist in the organisation", "danger")
-				return render_template('organisation/new_project.html')
-
-			with db_conn.cursor() as cursor:
-				sql = 'SELECT `project_id` FROM `project` WHERE `project_id`=%s'
-				cursor.execute(sql, (project_id, ))
-				result = cursor.fetchone()
-
-			if result is not None:
-				flash("project_id already exist", "danger")
-				return render_template('organisation/new_project.html')
-
-			while True:
-				api_key = uuid.uuid4()
-				api_key = api_key.hex
-				with db_conn.cursor() as cursor:
-					sql = 'SELECT `api_key` FROM `project` WHERE `api_key`=%s'
-					cursor.execute(sql, (api_key, ))
-					result = cursor.fetchone()
-				if result is None:
-					break
-
-			with db_conn.cursor() as cursor:
-				cursor.execute("INSERT INTO `project`(`slug`,`project_id`,`name`,`description`,`api_key`) \
-					Values (%s, %s, %s, %s, %s)", (slug, project_id, name, description, api_key))
-				db_conn.commit()
-				return redirect(url_for('organisation.view_project',slug=slug,project_id=project_id))
-
-		else:
-			if not project_id:
-				flash("Enter project_id", "danger")
-			if not name:
-				flash("Enter name", "danger")
-			if not description:
-				flash("Enter description", "danger")
-
-			return render_template('organisation/new_project.html')
-
 
 @blueprint.route('/<string:slug>/project/<string:project_id>/get-api', methods=["GET"])
 @auth.login_required
@@ -432,7 +366,7 @@ def project_dashboard(organisation, project_id):
 # Ideally, it should be moved into a seperate file and this import moved to the top 
 from views.dashboard.session import SessionDashboard
 from views.dashboard.event import EventDashboard
-from views.project import ViewProject, EditProject
+from views.project import ViewProject, EditProject, NewProject
 
 
 blueprint.add_url_rule('/<string:slug>/project/<string:project_id>/',
@@ -440,6 +374,10 @@ blueprint.add_url_rule('/<string:slug>/project/<string:project_id>/',
 
 blueprint.add_url_rule('/<string:slug>/project/<string:project_id>/edit',
                  view_func=EditProject.as_view('edit_project'), methods=['GET', 'POST'])
+
+blueprint.add_url_rule('/<string:slug>/project/new',
+                 view_func=NewProject.as_view('new_project'), methods=['GET', 'POST'])
+
 
 blueprint.add_url_rule('/<string:organisation>/project/<string:project_id>/events/',
                  view_func=EventDashboard.as_view('project_events_dashboard'), methods=['GET',])
