@@ -50,11 +50,11 @@
             {% include "partials/flashed_messages.html" %}
             <div class="form-group">
               <label for="name-input">Project Name</label>
-                <input class="form-control" id="name-input" value="{{ response.name }}" maxlength="30" placeholder="Name" name="name" type="text">
+                <input class="form-control" id="name-input" value="{{ project.name }}" maxlength="30" placeholder="Name" name="name" type="text">
             </div>
             <div class="form-group">
               <label for="description-input">Project Description</label>
-                <textarea class="form-control" id="name-input" value="{{ response.description }}" placeholder="Name" name="description" type="text" rows="3">{{ response.description }}</textarea>
+                <textarea class="form-control" id="name-input" value="{{ project.description }}" placeholder="Name" name="description" type="text" rows="3">{{ project.description }}</textarea>
             </div>
             <div class="text-center">
               <input type="submit" class="btn btn-primary mt-4" value="Edit Project">

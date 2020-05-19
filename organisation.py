@@ -211,32 +211,6 @@ def testing(organisation_slug):
 	set_active_org_project(organisation_slug)
 	return render_template('test_side.html')
 
-@blueprint.route('/<string:slug>/project/<string:project_id>/', methods=['GET','POST'])
-@auth.login_required
-@auth.check_valid_org_and_project
-def view_project(slug, project_id):
-
-	set_active_org_project(slug, project_id)
-
-	user = g.user
-	username = user["username"]
-
-	if request.method == "GET":
-		db_conn = db.get_database_connection()
-		show_results = True
-		with db_conn.cursor() as cursor:
-			sql = 'SELECT `role` FROM `belongs_to` WHERE `username`=%s and `slug`=%s'
-			cursor.execute(sql, (username, slug, ))
-			role = cursor.fetchone()
-
-			if role["role"] == "Member":
-				show_results = False
-			
-			sql = 'SELECT * FROM `project` WHERE `slug`=%s and `project_id`=%s'
-			cursor.execute(sql, (slug, project_id, ))
-			result = cursor.fetchone()
-			return render_template('organisation/view_project.html', slug=slug, project=result, show_results=show_results) 
-
 @blueprint.route('/<string:slug>/edit', methods=['GET','POST'])
 @auth.login_required
 @auth.check_valid_org_and_project
@@ -296,51 +270,6 @@ def edit_organisation(slug):
 
 
 
-@blueprint.route('/<string:slug>/project/<string:project_id>/edit',methods=['GET', 'POST'])
-@auth.login_required
-@auth.check_valid_org_and_project
-def edit_project(slug, project_id):
-
-	user = g.user
-	username = user["username"]
-
-	db_conn = db.get_database_connection()
-
-	with db_conn.cursor() as cursor:
-		sql = 'SELECT * from `project` WHERE `project_id`=%s'
-		cursor.execute(sql, (project_id, ))
-		response = cursor.fetchone()
-
-	set_active_org_project(slug, project_id)
-
-	with db_conn.cursor() as cursor:
-		sql = 'SELECT * FROM `project` WHERE `slug`=%s and `project_id`=%s'
-		cursor.execute(sql, (slug, project_id, ))
-		result = cursor.fetchone()
-
-	if request.method == "GET":
-
-		return render_template('organisation/edit_project.html', slug=slug, project=result, response=response)
-
-	elif request.method == "POST":
-		name = request.form.get("name", None)
-		description = request.form.get("description", None)
-
-		if name and description:
-			with db_conn.cursor() as cursor:
-				sql = 'UPDATE `project` SET `name`=%s, `description`=%s \
-					WHERE	`project`.`project_id`=%s'
-				cursor.execute(sql, (name, description, project_id, ))
-				db_conn.commit()
-			return redirect(url_for('organisation.view_project',slug=slug,project_id=project_id))
-
-		else:
-			if not name:
-				flash("Enter project name", "danger")
-			if not description:
-				flash("Enter description", "danger")
-
-			return render_template('organisation/edit_project.html',slug=slug,project=result, response=response)
 
 
 @blueprint.route('/<string:slug>/project/new', methods=['GET','POST'])
@@ -503,6 +432,14 @@ def project_dashboard(organisation, project_id):
 # Ideally, it should be moved into a seperate file and this import moved to the top 
 from views.dashboard.session import SessionDashboard
 from views.dashboard.event import EventDashboard
+from views.project import ViewProject, EditProject
+
+
+blueprint.add_url_rule('/<string:slug>/project/<string:project_id>/',
+                 view_func=ViewProject.as_view('view_project'), methods=['GET',])
+
+blueprint.add_url_rule('/<string:slug>/project/<string:project_id>/edit',
+                 view_func=EditProject.as_view('edit_project'), methods=['GET', 'POST'])
 
 blueprint.add_url_rule('/<string:organisation>/project/<string:project_id>/events/',
                  view_func=EventDashboard.as_view('project_events_dashboard'), methods=['GET',])
