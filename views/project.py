@@ -1,11 +1,12 @@
-from flask import render_template, g, request, redirect, url_for, flash
+import uuid
+
+from flask import flash, g, redirect, render_template, request, url_for
 from flask.views import MethodView
 
 import auth
 import db
-from organisation import set_active_org_project
-
 import utils
+from organisation import set_active_org_project
 
 
 class ViewProject(MethodView):
