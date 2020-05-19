@@ -129,7 +129,7 @@ class SessionDashboard(MethodView):
                     WHERE project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
                     GROUP BY start_page, end_page ORDER BY count DESC")
 
-            cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+            cursor.execute(sql, (project_id, self.start_time.isoformat(), self.end_time.isoformat()))
             result = cursor.fetchall()
 
             entry_and_exit_point = {}
@@ -142,7 +142,7 @@ class SessionDashboard(MethodView):
                     AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
                     GROUP BY start_page ORDER BY count DESC")
 
-            cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+            cursor.execute(sql, (project_id, self.start_time.isoformat(), self.end_time.isoformat()))
             result = cursor.fetchall()
 
             entry_point = {}
@@ -153,7 +153,7 @@ class SessionDashboard(MethodView):
                     AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
                     GROUP BY end_page ORDER BY count DESC")
 
-            cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+            cursor.execute(sql, (project_id, self.start_time.isoformat(), self.end_time.isoformat()))
             result = cursor.fetchall()
 
             exit_point = {}
@@ -163,7 +163,7 @@ class SessionDashboard(MethodView):
             sql = ("SELECT start_page as page_url , COUNT(*) AS count FROM session WHERE project_id=%s \
                     AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
                     GROUP BY start_page")       
-            cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+            cursor.execute(sql, (project_id, self.start_time.isoformat(), self.end_time.isoformat()))
             result = cursor.fetchall()
 
             bounce_numerator = {}
@@ -174,7 +174,7 @@ class SessionDashboard(MethodView):
                     (SELECT start_page FROM session WHERE start_page=end_page AND project_id = %s AND \
                         DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) ) \
                     AND event_type='pageview' GROUP BY page_url")
-            cursor.execute(sql, (project_id, start_time.isoformat(), end_time.isoformat()))
+            cursor.execute(sql, (project_id, self.start_time.isoformat(), self.end_time.isoformat()))
             result = cursor.fetchall()
 
             bounce_denominator = {}
