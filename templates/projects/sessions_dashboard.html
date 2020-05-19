@@ -201,8 +201,8 @@
                                     <tbody>
                                         {% for index, index_value in entry_and_exit_point.items() %}
                                         <tr>
-                                            <td class="display-4">{{ index_value["start_page"] }}</td>
-                                            <td class="display-4">{{ index_value["end_page"] }}</td>
+                                            <td>{{ index_value["start_page"] }}</td>
+                                            <td>{{ index_value["end_page"] }}</td>
                                             <td>{{ index_value["count"] }}</td>
                                         </tr>
                                         {% endfor %}
@@ -270,7 +270,7 @@
                                     <tbody>
                                         {% for page, count in entry_point.items() %}
                                         <tr>
-                                            <td class="display-4">{{ page }}</td>
+                                            <td>{{ page }}</td>
                                             <td>{{ count }}</td>
                                         </tr>
                                         {% endfor %}
@@ -338,7 +338,7 @@
                                     <tbody>
                                         {% for page, count in exit_point.items() %}
                                         <tr>
-                                            <td class="display-4">{{ page }}</td>
+                                            <td>{{ page }}</td>
                                             <td>{{ count }}</td>
                                         </tr>
                                         {% endfor %}
@@ -406,7 +406,7 @@
                                     <tbody>
                                         {% for page, _bounce_rate in bounce_rate.items() %}
                                         <tr>
-                                            <td class="display-4">{{ page }}</td>
+                                            <td>{{ page }}</td>
                                             <td>{{ _bounce_rate }}</td>
                                         </tr>
                                         {% endfor %}
