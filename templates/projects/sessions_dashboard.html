@@ -147,6 +147,12 @@
                         <div class="col">
                             <h4 class="card-tile text-muted text-uppercase">Entry and Exit Pages</h4>
                         </div>
+                        <div class="col-4 text-right">
+                            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
+                            data-target="#entryPageModal">
+                                <span class="btn-inner--text">See all</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -160,14 +166,51 @@
                         </thead>
                         <tbody>
                             {% for index, index_value in entry_and_exit_point.items() %}
+                            {% if loop.index<=5 %}
                             <tr>
                                 <td class="display-4">{{ index_value["start_page"] }}</td>
                                 <td class="display-4">{{ index_value["end_page"] }}</td>
                                 <td>{{ index_value["count"] }}</td>
                             </tr>
+                            {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+            </div>
+            <div class="modal fade" id="entryPageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="entryLabel">Entry and Exit Pages</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table align-items-center table-flash" id="top-events-table">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th scope="col">Entry Page</th>
+                                            <th scope="col">Exit Page</th>
+                                            <th scope="col">Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for index, index_value in entry_and_exit_point.items() %}
+                                        <tr>
+                                            <td class="display-4">{{ index_value["start_page"] }}</td>
+                                            <td class="display-4">{{ index_value["end_page"] }}</td>
+                                            <td>{{ index_value["count"] }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card">
@@ -179,7 +222,7 @@
                         <div class="col-4 text-right">
                             <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
                             data-target="#entryPageModal">
-                                <span class="btn-inner--text">See more</span>
+                                <span class="btn-inner--text">See all</span>
                             </button>
                         </div>
                     </div>
@@ -217,8 +260,8 @@
                         </div>
                         <div class="modal-body">
                             <div class="table-responsive">
-                                <table class="table align-items-center table-dark" id="top-events-table">
-                                    <thead class="thead-dark">
+                                <table class="table align-items-center table-flash" id="top-events-table">
+                                    <thead class="thead-light">
                                         <tr>
                                             <th scope="col">Entry Page</th>
                                             <th scope="col">Count</th>
@@ -247,7 +290,7 @@
                         <div class="col-4 text-right">
                             <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
                             data-target="#exitPageModal">
-                                <span class="btn-inner--text">See more</span>
+                                <span class="btn-inner--text">See all</span>
                             </button>
                         </div>
                     </div>
@@ -285,8 +328,8 @@
                         </div>
                         <div class="modal-body">
                             <div class="table-responsive">
-                                <table class="table align-items-center table-dark" id="top-events-table">
-                                    <thead class="thead-dark">
+                                <table class="table align-items-center table-flush" id="top-events-table">
+                                    <thead class="thead-light">
                                         <tr>
                                             <th scope="col">Exit Page</th>
                                             <th scope="col">Count</th>
@@ -312,6 +355,12 @@
                         <div class="col">
                             <h4 class="card-tile text-muted text-uppercase">Page Visits</h4>
                         </div>
+                        <div class="col-4 text-right">
+                            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
+                            data-target="#bounceRateModal">
+                                <span class="btn-inner--text">See all</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -324,13 +373,48 @@
                         </thead>
                         <tbody>
                             {% for _page, _bounce_rate in bounce_rate.items() %}
+                            {% if loop.index<=5 %}
                             <tr>
                                 <td class="display-4">{{ _page }}</td>
                                 <td>{{ _bounce_rate }}</td>
                             </tr>
+                            {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+            </div>
+            <div class="modal fade" id="bounceRateModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="bounceRateLabel">Page Visits</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table align-items-center table-flush" id="top-events-table">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th scope="col">Page</th>
+                                            <th scope="col">Bounce Rate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for page, _bounce_rate in bounce_rate.items() %}
+                                        <tr>
+                                            <td class="display-4">{{ page }}</td>
+                                            <td>{{ _bounce_rate }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
