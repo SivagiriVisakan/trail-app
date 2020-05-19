@@ -45,13 +45,7 @@ class EditProject(MethodView):
     decorators = [auth.check_valid_org_and_project, auth.login_required]
 
     def get(self, slug, project_id):
-        set_active_org_project(slug, project_id)
         db_conn = db.get_database_connection()
-
-        with db_conn.cursor() as cursor:
-            sql = 'SELECT * FROM `project` WHERE `slug`=%s and `project_id`=%s'
-            cursor.execute(sql, (slug, project_id, ))
-            result = cursor.fetchone()
 
 
         set_active_org_project(slug, project_id)
