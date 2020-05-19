@@ -176,6 +176,12 @@
                         <div class="col">
                             <h4 class="card-tile text-muted text-uppercase">Entry Pages</h4>
                         </div>
+                        <div class="col-4 text-right">
+                            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
+                            data-target="#entryPageModal">
+                                <span class="btn-inner--text">See more</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -188,13 +194,48 @@
                         </thead>
                         <tbody>
                             {% for page, count in entry_point.items() %}
+                            {% if loop.index<=5 %}
                             <tr>
                                 <td class="display-4">{{ page }}</td>
                                 <td>{{ count }}</td>
                             </tr>
+                            {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+            </div>
+            <div class="modal fade" id="entryPageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="entryLabel">Entry Pages</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table align-items-center table-dark" id="top-events-table">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th scope="col">Entry Page</th>
+                                            <th scope="col">Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for page, count in entry_point.items() %}
+                                        <tr>
+                                            <td class="display-4">{{ page }}</td>
+                                            <td>{{ count }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card">
@@ -202,6 +243,12 @@
                     <div class="row align-items-center">
                         <div class="col">
                             <h4 class="card-tile text-muted text-uppercase">Exit Pages</h4>
+                        </div>
+                        <div class="col-4 text-right">
+                            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
+                            data-target="#exitPageModal">
+                                <span class="btn-inner--text">See more</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -215,13 +262,48 @@
                         </thead>
                         <tbody>
                             {% for page, count in exit_point.items() %}
+                            {% if loop.index<=5 %}
                             <tr>
                                 <td class="display-4">{{ page }}</td>
                                 <td>{{ count }}</td>
                             </tr>
+                            {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+            </div>
+            <div class="modal fade" id="exitPageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exitLabel">Exit Pages</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table align-items-center table-dark" id="top-events-table">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th scope="col">Exit Page</th>
+                                            <th scope="col">Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for page, count in exit_point.items() %}
+                                        <tr>
+                                            <td class="display-4">{{ page }}</td>
+                                            <td>{{ count }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card">
