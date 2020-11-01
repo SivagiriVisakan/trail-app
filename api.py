@@ -6,11 +6,19 @@ from hashlib import sha256
 
 import user_agents as ua
 from flask import Blueprint, request
-
+from clickhouse_driver import Client
 import db
 from utils import check_missing_keys
 
 blueprint = Blueprint('api', __name__, url_prefix='/api')
+
+
+def add_new_event(session_id, time_entered, user_agent, page_url, page_domain, page_params, event_type, custom_data):
+    client = Client('localhost')
+    inserted_rows = client.execute('INSERT into trailapp.web_events (session_id, time_entered, user_agent, page_url, page_domain, page_params, event_type, custom_data) VALUES',
+            [(session_id, time_entered , user_agent, page_url, page_domain, page_params, event_type, custom_data)])
+    print(inserted_rows)
+    return inserted_rows
 
 # An endpoint to list all the events
 # TODO: Restrict access based on user and project.
@@ -96,7 +104,7 @@ def list_events(project):
     response["success"] = True
     return response
 
-    
+
 
 @blueprint.route('/v1/get-metrics/<string:project>/', methods=['GET'])
 def get_metrics(project):
@@ -330,6 +338,9 @@ def register_new_event():
                                                     user_agent, request_body["page_url"], request_body["event_type"],
                                                     custom_data))
             db_connection.commit()
+            add_new_event(uuid.uuid4().int>>64, int(datetime.datetime.now().timestamp()), user_agent, request_body["page_url"],
+                            request_body["page_url"], '{}', request_body["event_type"], custom_data)
+
 
     else:
         end_time = datetime.datetime.now()
@@ -357,6 +368,8 @@ def register_new_event():
                                                     user_agent, request_body["page_url"], request_body["event_type"],
                                                     custom_data))
             db_connection.commit()
+            add_new_event(session_id, int(datetime.datetime.now().timestamp()), user_agent, request_body["page_url"],
+                            request_body["page_url"], '{}', request_body["event_type"], json.dumps(custom_data))
 
     response["success"] = True
     response["session_id"] = session_id
