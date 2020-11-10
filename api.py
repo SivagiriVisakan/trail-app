@@ -6,18 +6,25 @@ from hashlib import sha256
 
 import user_agents as ua
 from flask import Blueprint, request
-from clickhouse_driver import Client
 import db
 from utils import check_missing_keys
 
 blueprint = Blueprint('api', __name__, url_prefix='/api')
 
 
-def add_new_event(session_id, time_entered, user_agent, page_url, page_domain, page_params, event_type, custom_data):
-    client = Client('localhost')
-    inserted_rows = client.execute('INSERT into trailapp.web_events (session_id, time_entered, user_agent, page_url, page_domain, page_params, event_type, custom_data) VALUES',
-            [(session_id, time_entered , user_agent, page_url, page_domain, page_params, event_type, custom_data)])
-    print(inserted_rows)
+def add_new_event(session_id, project_id, origin_user_id, time_entered, user_agent, page_url, page_domain, page_params, event_type, referrer, campaign, custom_data):
+    client = db.get_clickhouse_client()
+    insert_sql = 'INSERT into web_events (session_id, project_id, origin_user_id, time_entered, user_agent, page_url, \
+        page_domain, page_params, event_type,browser, os, device, referrer, utm_campaign, custom_data.key, custom_data.value) VALUES'
+    
+    user_agent_data = get_custom_data_from_user_agent(user_agent)
+
+    inserted_rows = client.execute(insert_sql,
+            [(session_id, project_id, origin_user_id, time_entered, user_agent,
+            page_url, page_domain, page_params, event_type, user_agent_data['browser'],
+            user_agent_data['OS'], user_agent_data['device'], referrer,
+            campaign,custom_data.keys(), custom_data.values())])
+
     return inserted_rows
 
 # An endpoint to list all the events
@@ -338,9 +345,8 @@ def register_new_event():
                                                     user_agent, request_body["page_url"], request_body["event_type"],
                                                     custom_data))
             db_connection.commit()
-            add_new_event(uuid.uuid4().int>>64, int(datetime.datetime.now().timestamp()), user_agent, request_body["page_url"],
-                            request_body["page_url"], '{}', request_body["event_type"], custom_data)
-
+            add_new_event(session_id, project_id, origin_id, int(datetime.datetime.now().timestamp()), user_agent, request_body["page_url"],
+                            request_body["page_url"], '{}', request_body["event_type"], '', '', json.loads(custom_data))
 
     else:
         end_time = datetime.datetime.now()
@@ -368,8 +374,8 @@ def register_new_event():
                                                     user_agent, request_body["page_url"], request_body["event_type"],
                                                     custom_data))
             db_connection.commit()
-            add_new_event(session_id, int(datetime.datetime.now().timestamp()), user_agent, request_body["page_url"],
-                            request_body["page_url"], '{}', request_body["event_type"], json.dumps(custom_data))
+            add_new_event(session_id, project_id, origin_id, int(datetime.datetime.now().timestamp()), user_agent, request_body["page_url"],
+                            request_body["page_url"], '{}', request_body["event_type"], '', '', json.loads(custom_data))
 
     response["success"] = True
     response["session_id"] = session_id
