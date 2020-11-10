@@ -16,19 +16,22 @@ def add_new_event(session_id, project_id, origin_user_id, time_entered, user_age
     client = db.get_clickhouse_client()
     insert_sql = 'INSERT into web_events (session_id, project_id, origin_user_id, time_entered, user_agent, page_url, \
         page_domain, page_params, event_type,browser, os, device, referrer, utm_campaign, custom_data.key, custom_data.value) VALUES'
-    
+
     user_agent_data = get_custom_data_from_user_agent(user_agent)
 
     inserted_rows = client.execute(insert_sql,
-            [(session_id, project_id, origin_user_id, time_entered, user_agent,
-            page_url, page_domain, page_params, event_type, user_agent_data['browser'],
-            user_agent_data['OS'], user_agent_data['device'], referrer,
-            campaign,custom_data.keys(), custom_data.values())])
+                                   [(session_id, project_id, origin_user_id, time_entered, user_agent,
+                                     page_url, page_domain, page_params, event_type, user_agent_data[
+                                         'browser'],
+                                     user_agent_data['OS'], user_agent_data['device'], referrer,
+                                       campaign, custom_data.keys(), custom_data.values())])
 
     return inserted_rows
 
 # An endpoint to list all the events
 # TODO: Restrict access based on user and project.
+
+
 @blueprint.route('/list-all', methods=["GET"])
 def list_all_events():
     db_conn = db.get_database_connection()
@@ -40,8 +43,8 @@ def list_all_events():
     return {}
 
 
-def get_events(project_id:str, event_type:str = None, start_time:datetime.datetime = None, \
-                end_time:datetime.datetime = None):
+def get_events(project_id: str, event_type: str = None, start_time: datetime.datetime = None,
+               end_time: datetime.datetime = None):
     '''
     Fetches the events that match the given parameters from the database.
 
@@ -53,8 +56,8 @@ def get_events(project_id:str, event_type:str = None, start_time:datetime.dateti
     with db_conn.cursor() as cursor:
         params_to_sql = []
         sql = ('SELECT web_event.*, session.project_id FROM `web_event` '
-                ' INNER JOIN `session` ON web_event.session_id=session.session_id'
-                ' WHERE project_id=%s')
+               ' INNER JOIN `session` ON web_event.session_id=session.session_id'
+               ' WHERE project_id=%s')
         params_to_sql.append(project_id)
         if event_type:
             sql += ' AND event_type=%s'
@@ -82,10 +85,10 @@ def list_events(project):
     If no parameter is given, it returns all the events
 
     parameters:
-    	event_type: The events that have this particular type will only be returned
-	    start_time: timestamp
+        event_type: The events that have this particular type will only be returned
+            start_time: timestamp
                     Events that were logged after this time will be returned
-	    end_time:  timestamp
+            end_time:  timestamp
                     The events returned would have been logged before this time
     """
 
@@ -96,12 +99,14 @@ def list_events(project):
         params["event_type"] = request.args["event_type"]
     try:
         if "start_time" in request.args:
-                timestamp = float(request.args["start_time"])
-                params["start_time"] = datetime.datetime.utcfromtimestamp(timestamp)
+            timestamp = float(request.args["start_time"])
+            params["start_time"] = datetime.datetime.utcfromtimestamp(
+                timestamp)
 
         if "end_time" in request.args:
-                timestamp = float(request.args["end_time"])
-                params["end_time"] = datetime.datetime.utcfromtimestamp(timestamp).isoformat()
+            timestamp = float(request.args["end_time"])
+            params["end_time"] = datetime.datetime.utcfromtimestamp(
+                timestamp).isoformat()
     except:
         response["error"] = "Invalid time parameter"
         return response, 400
@@ -112,10 +117,8 @@ def list_events(project):
     return response
 
 
-
 @blueprint.route('/v1/get-metrics/<string:project>/', methods=['GET'])
 def get_metrics(project):
-
     """
     This endpoint gets the following metrics with the given `project`.
     metrics : 
@@ -128,7 +131,7 @@ def get_metrics(project):
 
     Parameters is passed to get the metrics
     If no parameters is passed then a error is thrown
-    
+
     parameters:
         start_time: timestamp
                     Metrics of events logged after this time will only be taken into account
@@ -137,20 +140,21 @@ def get_metrics(project):
 
     """
 
-    response ={}
+    response = {}
     start_time = None
     end_time = None
 
     # Keys that must be present in a request to get metrics
-    REQUIRED_PARAMETERS = {"start_time","end_time"}
-    
+    REQUIRED_PARAMETERS = {"start_time", "end_time"}
+
     response = {"success": False}
     request_body = request.args.to_dict()
 
     missing = check_missing_keys(request_body, REQUIRED_PARAMETERS)
     if missing:
-        response["error"] = "Malformed request - missing parameters - " + str(missing)
-        return response, 400    
+        response["error"] = "Malformed request - missing parameters - " + \
+            str(missing)
+        return response, 400
 
     try:
         if "start_time" in request.args:
@@ -166,15 +170,17 @@ def get_metrics(project):
     except:
         response["error"] = "Invalid time parameter"
         return response, 400
-            
-    start_time = datetime.datetime.strptime(start_time.strftime('%Y-%m-%d'),'%Y-%m-%d')
 
-    end_time = datetime.datetime.strptime(end_time.strftime('%Y-%m-%d'),'%Y-%m-%d')
-    
-    # This has the dates from given start time to endtime, including the 
+    start_time = datetime.datetime.strptime(
+        start_time.strftime('%Y-%m-%d'), '%Y-%m-%d')
+
+    end_time = datetime.datetime.strptime(
+        end_time.strftime('%Y-%m-%d'), '%Y-%m-%d')
+
+    # This has the dates from given start time to endtime, including the
     # start date and end date
-    dates_array = (start_time + datetime.timedelta(days=x) for x in range(0, 
-                                                    (end_time-start_time).days+1))
+    dates_array = (start_time + datetime.timedelta(days=x) for x in range(0,
+                                                                          (end_time-start_time).days+1))
 
     for current_date in dates_array:
         current_date = current_date.strftime('%Y-%m-%d')
@@ -183,36 +189,35 @@ def get_metrics(project):
 
             result = {}
             params_to_sql = []
-            sql =  ('SELECT COUNT(DISTINCT(origin_id)) AS total_visitors FROM `session`'
-                    ' WHERE project_id=%s'
-                    ' AND DATE(start_time)=DATE(%s)')
+            sql = ('SELECT COUNT(DISTINCT(origin_id)) AS total_visitors FROM `session`'
+                   ' WHERE project_id=%s'
+                   ' AND DATE(start_time)=DATE(%s)')
             params_to_sql.append(project)
             params_to_sql.append(current_date)
-
             cursor.execute(sql, params_to_sql)
             records = cursor.fetchone()
             result['total_visitors'] = records['total_visitors']
 
             params_to_sql.clear()
             sql = ('SELECT COUNT(*) AS pageviews FROM `web_event` INNER JOIN `session`'
-                    ' ON web_event.session_id=session.session_id WHERE session.project_id=%s'
-                    ' AND web_event.event_type=%s'
-                    ' AND DATE(web_event.time_entered)=DATE(%s)')
+                   ' ON web_event.session_id=session.session_id WHERE session.project_id=%s'
+                   ' AND web_event.event_type=%s'
+                   ' AND DATE(web_event.time_entered)=DATE(%s)')
             params_to_sql.append(project)
             params_to_sql.append('pageview')
             params_to_sql.append(current_date)
             try:
                 cursor.execute(sql, params_to_sql)
             except:
-                print('\n\n\n',cursor._last_executed,'\n\n\n')
+                print('\n\n\n', cursor._last_executed, '\n\n\n')
 
             records = cursor.fetchone()
             result['pageviews'] = records['pageviews']
 
             params_to_sql.clear()
             sql = ('SELECT COUNT(*) AS total_events FROM `web_event` INNER JOIN `session`'
-                    ' ON web_event.session_id=session.session_id WHERE project_id=%s'
-                    ' AND DATE(time_entered)=DATE(%s)')
+                   ' ON web_event.session_id=session.session_id WHERE project_id=%s'
+                   ' AND DATE(time_entered)=DATE(%s)')
             params_to_sql.append(project)
             params_to_sql.append(current_date)
 
@@ -222,12 +227,12 @@ def get_metrics(project):
 
             params_to_sql.clear()
             sql = ('SELECT event_type, COUNT(*) FROM `web_event` INNER JOIN `session`'
-                    ' ON web_event.session_id=session.session_id WHERE session.project_id=%s'
-                    ' AND DATE(time_entered)=DATE(%s) GROUP BY event_type')
+                   ' ON web_event.session_id=session.session_id WHERE session.project_id=%s'
+                   ' AND DATE(time_entered)=DATE(%s) GROUP BY event_type')
             params_to_sql.append(project)
             params_to_sql.append(current_date)
 
-            cursor.execute(sql, params_to_sql)            
+            cursor.execute(sql, params_to_sql)
             records = cursor.fetchall()
             category_wise = {}
             for row in records:
@@ -240,6 +245,191 @@ def get_metrics(project):
     response["success"] = True
     return response
 
+
+@blueprint.route('/v2/get-metrics/<string:project>/', methods=['GET'])
+def get_metrics_v2(project):
+    """
+    This endpoint gets the following metrics with the given `project`.
+    metrics : 
+        {
+            total_visitors: count of total no of distinct users visited the project will be returned
+            pageviews: count of total no of pageview events occured will be returned
+            total_events: count of total no of events occured will be returned
+            category_wise: events occured and the count of events occured will be returned
+        }
+
+    Parameters is passed to get the metrics
+    If no parameters is passed then a error is thrown
+
+    parameters:
+        start_time: timestamp
+                    Metrics of events logged after this time will only be taken into account
+        end_time: timestamp
+                  Metrics of events logged after this time wiil only be taken into account 
+
+    """
+
+    response = {}
+    start_time = None
+    end_time = None
+
+    # Keys that must be present in a request to get metrics
+    REQUIRED_PARAMETERS = {"start_time", "end_time"}
+
+    response = {"success": False}
+    request_body = request.args.to_dict()
+
+    missing = check_missing_keys(request_body, REQUIRED_PARAMETERS)
+    if missing:
+        response["error"] = "Malformed request - missing parameters - " + \
+            str(missing)
+        return response, 400
+
+    try:
+        if "start_time" in request.args:
+            timestamp = float(request.args["start_time"])
+            start_time = datetime.datetime.utcfromtimestamp(timestamp)
+            start_time += datetime.timedelta(days=1)
+
+        if "end_time" in request.args:
+            timestamp = float(request.args["end_time"])
+            end_time = datetime.datetime.utcfromtimestamp(timestamp)
+            end_time += datetime.timedelta(days=1)
+
+    except:
+        response["error"] = "Invalid time parameter"
+        return response, 400
+
+    start_time = datetime.datetime.strptime(
+        start_time.strftime('%Y-%m-%d'), '%Y-%m-%d')
+
+    end_time = datetime.datetime.strptime(
+        end_time.strftime('%Y-%m-%d'), '%Y-%m-%d')
+    start_date_string = start_time.strftime('%Y-%m-%d')
+    end_date_string = end_time.strftime('%Y-%m-%d')
+
+    clickhouse_client = db.get_clickhouse_client()
+    total_vistors_sql = ('SELECT'
+                            ' event_date,'
+                            ' SUM(total_visitors) '
+                         ' FROM'
+                         ' ('
+                            ' SELECT'
+                                 ' toDate(time_entered) AS event_date,'
+                                 ' uniqExact(origin_user_id) AS total_visitors '
+                            ' FROM'
+                                ' web_events '
+                            ' WHERE'
+                                 ' project_id = %(project_id)s '
+                                 ' AND toDate(time_entered) BETWEEN %(start_date)s AND %(end_date)s '
+                            ' GROUP BY'
+                                 ' toDate(time_entered),'
+                                ' origin_user_id '
+                            ' ORDER BY'
+                                 ' origin_user_id'
+                         ' )'
+                         ' GROUP BY'
+                             ' event_date')
+    total_vistors = clickhouse_client.execute(total_vistors_sql,
+                                    {'project_id': project, 'start_date': start_date_string, 'end_date': end_date_string})
+
+    # Construct a dictionary from the resultant data
+    corrected_result = { d.strftime(
+        '%Y-%m-%d'): {'total_vistors': visitor_count} for d, visitor_count in total_vistors}
+
+    # Fetch the total events from the database
+    total_events_sql = ('SELECT'
+                           ' toDate(time_entered) AS event_date,'
+                            ' COUNT(*) AS total_events '
+                        ' FROM'
+                            ' web_events '
+                        ' WHERE'
+                            ' project_id =%(project_id)s '
+                            ' AND toDate(time_entered) BETWEEN %(start_date)s AND %(end_date)s '
+                        ' GROUP BY'
+                            ' event_date')
+    total_events = clickhouse_client.execute(total_events_sql, {
+                                             'project_id': project, 'start_date': start_date_string, 'end_date': end_date_string})
+    # Add the fetched results into our results
+    for d, c in total_events:
+        corrected_result[d.strftime('%Y-%m-%d')]['total_events'] = c
+
+
+    # Getting the totalpageviews
+    total_pageviews_datewise_sql = ('SELECT'
+                                       ' toDate(time_entered) AS event_date,'
+                                       ' COUNT(*) AS pageviews '
+                                    ' FROM'
+                                       ' web_events '
+                                    ' WHERE'
+                                       ' project_id = %(project_id)s '
+                                       ' AND event_type = %(event_type)s '
+                                       ' AND event_date BETWEEN %(start_date)s AND %(end_date)s '
+                                    ' GROUP BY'
+                                       ' event_date')
+
+    total_pageviews_datewise = clickhouse_client.execute(total_pageviews_datewise_sql, {
+                                                         'event_type': 'pageview', 'project_id': project,
+                                                         'start_date': start_date_string, 'end_date': end_date_string})
+    for d, c in total_pageviews_datewise:
+        corrected_result[d.strftime('%Y-%m-%d')]['pageviews'] = c
+
+
+    # Getting the events count individually
+    category_wise_events_sql = ('SELECT'
+                                   ' toDate(time_entered) AS event_date,'
+                                   ' event_type,'
+                                   ' COUNT(*) AS total_events '
+                                ' FROM'
+                                   ' web_events '
+                                ' WHERE'
+                                   ' project_id = %(project_id)s '
+                                   ' AND toDate(time_entered) BETWEEN %(start_date)s AND %(end_date)s '
+                                ' GROUP BY'
+                                   ' event_date,'
+                                   ' event_type')
+
+
+    category_wise_events = clickhouse_client.execute(category_wise_events_sql,  {
+                                                     'project_id': project, 'start_date': start_date_string, 'end_date': end_date_string
+                                                    })
+
+    for d, event, c in category_wise_events:
+        # Getting the existing category-wise info
+        existing_category_wise = corrected_result[d.strftime(
+            '%Y-%m-%d')].get('category_wise', {})
+        # Adding the current event
+        existing_category_wise[event] = c
+        # Setting it back so that the result is reflected
+        corrected_result[d.strftime(
+            '%Y-%m-%d')]['category_wise'] = existing_category_wise
+
+
+    # For dates which might not have any events at all, we need to show zero
+    # We keeep a default value for all dates and then override with the values we get from the database
+    # This has the dates from given start time to endtime, including the
+    # start date and end date
+    dates_array = (start_time + datetime.timedelta(days=x) for x in range(0,
+                                                                          (end_time-start_time).days+1))
+
+    default_result = {}
+    for current_date in dates_array:
+        current_date = current_date.strftime('%Y-%m-%d')
+        default_data = {
+            "category_wise": {
+                "pageview": 0
+            },
+            "pageviews": 0,
+            "total_events": 0,
+            "total_vistors": 0
+        }
+        default_result[current_date] = default_data
+
+    # Merge the default values, and the results from the database, with the results overriding the defaults
+    response = {**default_result, **corrected_result}
+    response["success"] = True  # Signal the response is successful
+
+    return response
 
 
 # This function adds CORS headers to all the responses from this blueprint
@@ -261,6 +451,7 @@ def get_custom_data_from_user_agent(user_agent):
             "browser": parsed_ua.browser.family,
             "device": parsed_ua.device.family}
 
+
 @blueprint.route('/v1/register-new', methods=["POST"])
 def register_new_event():
     """
@@ -269,12 +460,12 @@ def register_new_event():
     to log a new event onto our database.
 
     parameters:
-    	page_url:   The current URL of the from which the event is to be registered
-	    event_type: A specific tag for that particular event.
-	    custom_params: (Optional) Any other data that the client developer wants to send along.
+        page_url:   The current URL of the from which the event is to be registered
+            event_type: A specific tag for that particular event.
+            custom_params: (Optional) Any other data that the client developer wants to send along.
                         (Should be valid JSON)
-		api_key: The API key of the project for which the event is to be logged
-		origin_id: A unique tag identifying the end-user of the client-website.
+                api_key: The API key of the project for which the event is to be logged
+                origin_id: A unique tag identifying the end-user of the client-website.
     """
 
     # The keys that should be present a request that comes in to register a new event
@@ -288,7 +479,8 @@ def register_new_event():
     request_body = request.get_json()
     missing = check_missing_keys(request_body, REGISTER_NEW_EVENT_KEYS)
     if missing:
-        response["error"] = "Malformed request - missing parameters - " + str(missing)
+        response["error"] = "Malformed request - missing parameters - " + \
+            str(missing)
         return response, 400
 
     user_agent = request.headers.get('User-Agent', None)
@@ -296,22 +488,22 @@ def register_new_event():
     project_id = None
 
     try:
-        origin_id_components = request.headers['Host'] + request.remote_addr + user_agent
-    except Exception as e:        
+        origin_id_components = request.headers['Host'] + \
+            request.remote_addr + user_agent
+    except Exception as e:
         # Some thing is missing
         response["error"] = "Malformed request"
         return response, 400
     db_connection = db.get_database_connection()
 
     with db_connection.cursor() as cursor:
-        get_project_from_api_key_sql  = 'SELECT `project_id` FROM `project` WHERE `api_key`=%s'
+        get_project_from_api_key_sql = 'SELECT `project_id` FROM `project` WHERE `api_key`=%s'
         cursor.execute(get_project_from_api_key_sql, (api_key,))
         result = cursor.fetchone()
         if not result:
             response["error"] = "Invalid API key"
             return response, 404
         project_id = result.get("project_id")
-
 
     origin_id = sha256(origin_id_components.encode()).hexdigest()
 
@@ -333,8 +525,8 @@ def register_new_event():
                                     `project_id`, `start_page`, `end_page`) VALUES \
                                     (%s, %s, %s, %s, %s)"
 
-            cursor.execute(insert_new_session, (session_id, origin_id, project_id, 
-                                                    request_body["page_url"], request_body["page_url"]))
+            cursor.execute(insert_new_session, (session_id, origin_id, project_id,
+                                                request_body["page_url"], request_body["page_url"]))
             db_connection.commit()
 
             insert_new_event_sql = "INSERT INTO `web_event` ( `session_id`, `user_agent`, \
@@ -342,18 +534,18 @@ def register_new_event():
                                     (%s, %s, %s, %s, %s)"
 
             cursor.execute(insert_new_event_sql, (session_id,
-                                                    user_agent, request_body["page_url"], request_body["event_type"],
-                                                    custom_data))
+                                                  user_agent, request_body["page_url"], request_body["event_type"],
+                                                  custom_data))
             db_connection.commit()
             add_new_event(session_id, project_id, origin_id, int(datetime.datetime.now().timestamp()), user_agent, request_body["page_url"],
-                            request_body["page_url"], '{}', request_body["event_type"], '', '', json.loads(custom_data))
+                          request_body["page_url"], '{}', request_body["event_type"], '', '', json.loads(custom_data))
 
     else:
         end_time = datetime.datetime.now()
         end_time = end_time.strftime("%Y-%m-%d %H:%M:%S")
 
         with db_connection.cursor() as cursor:
-            ## Validate session ID
+            # Validate session ID
             sql = 'SELECT session_id FROM `session` WHERE session_id=%s AND project_id=%s;'
             cursor.execute(sql, (session_id, project_id))
             result = cursor.fetchone()
@@ -363,7 +555,8 @@ def register_new_event():
                 return response, 404
 
             update_exist_session = "UPDATE `session` SET `end_time`=%s, `end_page`=%s WHERE `session_id`=%s"
-            cursor.execute(update_exist_session, (end_time, request_body["page_url"], session_id, ))
+            cursor.execute(update_exist_session, (end_time,
+                                                  request_body["page_url"], session_id, ))
             db_connection.commit()
 
             insert_new_event_sql = "INSERT INTO `web_event` ( `session_id`, `user_agent`, \
@@ -371,11 +564,11 @@ def register_new_event():
                                     (%s, %s, %s, %s, %s)"
 
             cursor.execute(insert_new_event_sql, (session_id,
-                                                    user_agent, request_body["page_url"], request_body["event_type"],
-                                                    custom_data))
+                                                  user_agent, request_body["page_url"], request_body["event_type"],
+                                                  custom_data))
             db_connection.commit()
             add_new_event(session_id, project_id, origin_id, int(datetime.datetime.now().timestamp()), user_agent, request_body["page_url"],
-                            request_body["page_url"], '{}', request_body["event_type"], '', '', json.loads(custom_data))
+                          request_body["page_url"], '{}', request_body["event_type"], '', '', json.loads(custom_data))
 
     response["success"] = True
     response["session_id"] = session_id
