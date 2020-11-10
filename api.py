@@ -176,135 +176,6 @@ def get_metrics(project):
 
     end_time = datetime.datetime.strptime(
         end_time.strftime('%Y-%m-%d'), '%Y-%m-%d')
-
-    # This has the dates from given start time to endtime, including the
-    # start date and end date
-    dates_array = (start_time + datetime.timedelta(days=x) for x in range(0,
-                                                                          (end_time-start_time).days+1))
-
-    for current_date in dates_array:
-        current_date = current_date.strftime('%Y-%m-%d')
-        db_conn = db.get_database_connection()
-        with db_conn.cursor() as cursor:
-
-            result = {}
-            params_to_sql = []
-            sql = ('SELECT COUNT(DISTINCT(origin_id)) AS total_visitors FROM `session`'
-                   ' WHERE project_id=%s'
-                   ' AND DATE(start_time)=DATE(%s)')
-            params_to_sql.append(project)
-            params_to_sql.append(current_date)
-            cursor.execute(sql, params_to_sql)
-            records = cursor.fetchone()
-            result['total_visitors'] = records['total_visitors']
-
-            params_to_sql.clear()
-            sql = ('SELECT COUNT(*) AS pageviews FROM `web_event` INNER JOIN `session`'
-                   ' ON web_event.session_id=session.session_id WHERE session.project_id=%s'
-                   ' AND web_event.event_type=%s'
-                   ' AND DATE(web_event.time_entered)=DATE(%s)')
-            params_to_sql.append(project)
-            params_to_sql.append('pageview')
-            params_to_sql.append(current_date)
-            try:
-                cursor.execute(sql, params_to_sql)
-            except:
-                print('\n\n\n', cursor._last_executed, '\n\n\n')
-
-            records = cursor.fetchone()
-            result['pageviews'] = records['pageviews']
-
-            params_to_sql.clear()
-            sql = ('SELECT COUNT(*) AS total_events FROM `web_event` INNER JOIN `session`'
-                   ' ON web_event.session_id=session.session_id WHERE project_id=%s'
-                   ' AND DATE(time_entered)=DATE(%s)')
-            params_to_sql.append(project)
-            params_to_sql.append(current_date)
-
-            cursor.execute(sql, params_to_sql)
-            records = cursor.fetchone()
-            result['total_events'] = records['total_events']
-
-            params_to_sql.clear()
-            sql = ('SELECT event_type, COUNT(*) FROM `web_event` INNER JOIN `session`'
-                   ' ON web_event.session_id=session.session_id WHERE session.project_id=%s'
-                   ' AND DATE(time_entered)=DATE(%s) GROUP BY event_type')
-            params_to_sql.append(project)
-            params_to_sql.append(current_date)
-
-            cursor.execute(sql, params_to_sql)
-            records = cursor.fetchall()
-            category_wise = {}
-            for row in records:
-                if row is not None:
-                    category_wise[row['event_type']] = row['COUNT(*)']
-
-            result['category_wise'] = category_wise
-
-            response[current_date] = result
-    response["success"] = True
-    return response
-
-
-@blueprint.route('/v2/get-metrics/<string:project>/', methods=['GET'])
-def get_metrics_v2(project):
-    """
-    This endpoint gets the following metrics with the given `project`.
-    metrics : 
-        {
-            total_visitors: count of total no of distinct users visited the project will be returned
-            pageviews: count of total no of pageview events occured will be returned
-            total_events: count of total no of events occured will be returned
-            category_wise: events occured and the count of events occured will be returned
-        }
-
-    Parameters is passed to get the metrics
-    If no parameters is passed then a error is thrown
-
-    parameters:
-        start_time: timestamp
-                    Metrics of events logged after this time will only be taken into account
-        end_time: timestamp
-                  Metrics of events logged after this time wiil only be taken into account 
-
-    """
-
-    response = {}
-    start_time = None
-    end_time = None
-
-    # Keys that must be present in a request to get metrics
-    REQUIRED_PARAMETERS = {"start_time", "end_time"}
-
-    response = {"success": False}
-    request_body = request.args.to_dict()
-
-    missing = check_missing_keys(request_body, REQUIRED_PARAMETERS)
-    if missing:
-        response["error"] = "Malformed request - missing parameters - " + \
-            str(missing)
-        return response, 400
-
-    try:
-        if "start_time" in request.args:
-            timestamp = float(request.args["start_time"])
-            start_time = datetime.datetime.utcfromtimestamp(timestamp)
-            start_time += datetime.timedelta(days=1)
-
-        if "end_time" in request.args:
-            timestamp = float(request.args["end_time"])
-            end_time = datetime.datetime.utcfromtimestamp(timestamp)
-            end_time += datetime.timedelta(days=1)
-
-    except:
-        response["error"] = "Invalid time parameter"
-        return response, 400
-
-    start_time = datetime.datetime.strptime(
-        start_time.strftime('%Y-%m-%d'), '%Y-%m-%d')
-
-    end_time = datetime.datetime.strptime(
-        end_time.strftime('%Y-%m-%d'), '%Y-%m-%d')
     start_date_string = start_time.strftime('%Y-%m-%d')
     end_date_string = end_time.strftime('%Y-%m-%d')
 
@@ -497,6 +368,7 @@ def register_new_event():
     db_connection = db.get_database_connection()
 
     with db_connection.cursor() as cursor:
+        # TODO: Cache the API Key in Redis
         get_project_from_api_key_sql = 'SELECT `project_id` FROM `project` WHERE `api_key`=%s'
         cursor.execute(get_project_from_api_key_sql, (api_key,))
         result = cursor.fetchone()
@@ -515,6 +387,9 @@ def register_new_event():
     custom_data = json.dumps(custom_data)
 
     session_id = request_body.get("session_id", None)
+
+
+    # TODO: Don't add the events to MySQL once every API is changed to use ClickHouse
 
     if not session_id:
         session_id = str(uuid.uuid4())
