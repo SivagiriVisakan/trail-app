@@ -1,5 +1,7 @@
+from config import CLICKHOUSE_DATABASE
 import pymysql
 from flask import g, current_app
+from clickhouse_driver import Client
 
 """
 Returns the connection to a database if one already exists, or creates a new connection and 
@@ -27,6 +29,14 @@ def close_database_connection(error):
     if db_connection is not None:
         db_connection.close()
 
+def get_clickhouse_client():
+    if 'db_clickhouse_client' not in g:
+        client = Client(host=CLICKHOUSE_DATABASE["HOST"],
+                             user=CLICKHOUSE_DATABASE["USER"],
+                             password=CLICKHOUSE_DATABASE["PASSWORD"],
+                             database=CLICKHOUSE_DATABASE["DATABASE_NAME"],)
+        g.db_clickhouse_client = client
+    return g.db_clickhouse_client
 
 def get_user(username, with_password=False):
     db_conn = get_database_connection()
