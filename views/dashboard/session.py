@@ -23,15 +23,13 @@ class SessionDashboard(MethodView):
             in the given timeperiod
         """
         count = 0
-        with self.db_conn.cursor(cursor=None) as cursor:
-
-            sql = ('SELECT count(*) AS count FROM `session`'
-                   ' WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s)')
-
-            cursor.execute(
-                sql, (self.project_id, self.start_time.isoformat(), self.end_time.isoformat()))
-            result = cursor.fetchone()
-            count = result.get("count", 0)
+        clickhouse_sql = ('SELECT count(distinct(session_id)) AS count FROM `web_events`'
+                        ' WHERE  project_id=%(project_id)s AND toDate(time_entered) >= toDateTime(%(start_date)s) AND toDate(time_entered) <= toDateTime(%(end_date)s)')
+        r = self.clickhouse_client.execute(clickhouse_sql,
+                                         {'project_id': self.project_id,
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()})
+        count = r[0][0]
         return count
 
     def get_datewise_sessions_count(self):
@@ -41,54 +39,98 @@ class SessionDashboard(MethodView):
         """
         with self.db_conn.cursor(cursor=None) as cursor:
 
-            sql = ('SELECT DATE(start_time) AS date, count(*) AS count FROM `session`'
-                   ' WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) GROUP BY DATE(start_time)')
-
-            cursor.execute(
-                sql, (self.project_id, self.start_time.isoformat(), self.end_time.isoformat()))
-            result = cursor.fetchall()
+            clickhouse_sql = ('SELECT '
+                                   'toDate(time_entered) AS event_date, '
+                                   'COUNT(DISTINCT(session_id))  '
+                                'FROM '
+                                   'web_events '
+                                'WHERE '
+                                    'project_id=%(project_id)s '
+                                    'AND '
+                                    'toDate(time_entered) >= toDate(%(start_date)s) AND toDate(time_entered) <= toDate(%(end_date)s)'
+                                'GROUP BY '
+                                   'event_date '
+                                )
 
             # We need value zero for missing dates
             all_dates_data = {(self.start_time+datetime.timedelta(days=i)
                                ).strftime("%d %b"): 0 for i in range(self.total_days)}
+            datewise_data = self.clickhouse_client.execute(clickhouse_sql,
+                                          {'project_id': self.project_id,
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()})
+            dates_from_data = {d.strftime(
+                "%d %b"): count for d, count in datewise_data}
 
-            dates_from_data = {record["date"].strftime(
-                "%d %b"): record["count"] for record in result}
             return {**all_dates_data, **dates_from_data}
 
     def get_os_aggregate(self):
         """
             Returns the top 5 used operating systems for sessions
         """
-        with self.db_conn.cursor(cursor=None) as cursor:
+        sql = ('SELECT'
+                    '   os,'
+                    '   COUNT(*) as count '
+                    'FROM'
+                    '   ('
+                    '      SELECT DISTINCT'
+                    '(session_id),'
+                    '         os '
+                    '      FROM'
+                    '         web_events '
+                         'WHERE '
+                                    'project_id=%(project_id)s '
+                                    'AND '
+                                    'toDate(time_entered) >= toDate(%(start_date)s) AND toDate(time_entered) <= toDate(%(end_date)s)'
+                    '      ORDER BY'
+                    '         time_entered'
+                    '   )'
+                    'GROUP BY'
+                    '   os'
+                    ' ORDER BY '
+                    'count DESC LIMIT 5')
 
-            sql = ("SELECT JSON_EXTRACT(custom_data, '$.OS') AS OS, COUNT(*) AS count"
-                   " FROM `session` s INNER JOIN "
-                   " (SELECT session_id, custom_data FROM web_event WHERE event_type='pageview' GROUP BY session_id, custom_data) w"
-                   " ON s.session_id=w.session_id WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s)"
-                   " GROUP BY OS ORDER BY count DESC LIMIT 5")
-
-            cursor.execute(
-                sql, (self.project_id, self.start_time.isoformat(), self.end_time.isoformat()))
-            result = cursor.fetchall()
-            return {record["OS"]: record["count"] for record in result}
+        os_data = self.clickhouse_client.execute(sql,{'project_id': self.project_id,
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()})
+        os_aggregate = {}
+        if len(os_data) > 0:
+            os_aggregate = {os: count for os, count in os_data}
+        return os_aggregate
 
     def get_browser_aggregate(self):
         """
             Returns the top 5 most used browsers for sessions
         """
-        with self.db_conn.cursor(cursor=None) as cursor:
-            sql = ("SELECT JSON_EXTRACT(custom_data, '$.browser') AS browser, COUNT(*) AS count"
-                   " FROM `session` s INNER JOIN "
-                   " (SELECT session_id, custom_data FROM web_event WHERE event_type='pageview' GROUP BY session_id, custom_data) w"
-                   " ON s.session_id=w.session_id WHERE  project_id=%s AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s)"
-                   " GROUP BY browser ORDER BY count DESC LIMIT 5")
+        sql = ('SELECT'
+                    '   browser,'
+                    '   COUNT(*) as count '
+                    'FROM'
+                    '   ('
+                    '      SELECT DISTINCT'
+                    '(session_id),'
+                    '         browser '
+                    '      FROM'
+                    '         web_events '
+                         'WHERE '
+                                    'project_id=%(project_id)s '
+                                    'AND '
+                                    'toDate(time_entered) >= toDate(%(start_date)s) AND toDate(time_entered) <= toDate(%(end_date)s)'
+                    '      ORDER BY'
+                    '         time_entered'
+                    '   )'
+                    'GROUP BY'
+                    '   browser'
+                    ' ORDER BY '
+                    'count DESC LIMIT 5')
 
-            cursor.execute(
-                sql, (self.project_id, self.start_time.isoformat(), self.end_time.isoformat()))
-            result = cursor.fetchall()
-
-            return {record["browser"]: record["count"] for record in result}
+        browser_data = self.clickhouse_client.execute(sql,{'project_id': self.project_id,
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()})
+        browser_aggregate = {}
+        if len(browser_data) > 0:
+            browser_aggregate = {os: count for os, count in browser_data}
+        return browser_aggregate
 
     def get(self, organisation, project_id):
         set_active_org_project(organisation, project_id)
@@ -117,6 +159,7 @@ class SessionDashboard(MethodView):
 
         self.db_conn = db.get_database_connection()
 
+        self.clickhouse_client = db.get_clickhouse_client()
         data = {}
         data["total_sessions"] = self.get_session_count()
 
