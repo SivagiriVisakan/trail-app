@@ -180,7 +180,7 @@ def get_metrics(project):
     end_date_string = end_time.strftime('%Y-%m-%d')
 
     clickhouse_client = db.get_clickhouse_client()
-    total_vistors_sql = ('SELECT'
+    total_visitors_sql = ('SELECT'
                             ' event_date,'
                             ' SUM(total_visitors) '
                          ' FROM'
@@ -201,12 +201,12 @@ def get_metrics(project):
                          ' )'
                          ' GROUP BY'
                              ' event_date')
-    total_vistors = clickhouse_client.execute(total_vistors_sql,
+    total_visitors = clickhouse_client.execute(total_visitors_sql,
                                     {'project_id': project, 'start_date': start_date_string, 'end_date': end_date_string})
 
     # Construct a dictionary from the resultant data
     corrected_result = { d.strftime(
-        '%Y-%m-%d'): {'total_vistors': visitor_count} for d, visitor_count in total_vistors}
+        '%Y-%m-%d'): {'total_visitors': visitor_count} for d, visitor_count in total_visitors}
 
     # Fetch the total events from the database
     total_events_sql = ('SELECT'
@@ -292,7 +292,7 @@ def get_metrics(project):
             },
             "pageviews": 0,
             "total_events": 0,
-            "total_vistors": 0
+            "total_visitors": 0
         }
         default_result[current_date] = default_data
 
