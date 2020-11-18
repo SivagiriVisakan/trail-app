@@ -70,39 +70,93 @@ class EventDashboard(MethodView):
 
         for event_dict in result_to_return:
             # Query the page_wise events count
-            sql = ('SELECT page_url, count(*) as total_events_count FROM web_event INNER JOIN `session`'
-                ' ON web_event.session_id=session.session_id WHERE project_id=%s'
-                ' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s) GROUP BY page_url')
-            cursor.execute(sql, (self.project_id, event_dict["event_type"], start_time.isoformat(
-            ), end_time.isoformat()))
-            result = cursor.fetchall()
+            
+            # sql = ('SELECT page_url, count(*) as total_events_count FROM web_event INNER JOIN `session`'
+            #     ' ON web_event.session_id=session.session_id WHERE project_id=%s'
+            #     ' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s) GROUP BY page_url')
+            # cursor.execute(sql, (self.project_id, event_dict["event_type"], start_time.isoformat(
+            # ), end_time.isoformat()))
+            # result = cursor.fetchall()
+            # event_dict["page_wise"] = result
+
+            clickhouse_sql = ('SELECT page_url, count(*) as total_events FROM `web_events` '
+                                'WHERE project_id=%(project_id)s AND event_type=%(event_type)s'
+                                ' AND toDate(time_entered) >= toDateTime(%(start_date)s)'
+                                'AND toDate(time_entered) <= toDateTime(%(end_date)s'
+                                'GROUP BY page_url')
+
+            result = self.clickhouse_client.execute(clickhouse_sql,
+                                        {
+                                          'project_id': self.project_id,
+                                          'event_type': event_dict["event_type"],
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()
+                                        })
+
             event_dict["page_wise"] = result
 
             resulting_custom_data_keys = []
 
-            sql = ('SELECT JSON_KEYS(custom_data)  as custom_keys from web_event INNER JOIN `session` '
-                ' ON web_event.session_id=session.session_id where project_id=%s'
-                ' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)'
-                ' group by custom_keys')
+            # sql = ('SELECT JSON_KEYS(custom_data)  as custom_keys from web_event INNER JOIN `session` '
+            #     ' ON web_event.session_id=session.session_id where project_id=%s'
+            #     ' AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)'
+            #     ' group by custom_keys')
 
-            cursor.execute(sql, (self.project_id, event_dict["event_type"], start_time.isoformat(
-            ), end_time.isoformat()))
-            result = cursor.fetchall()
+            # cursor.execute(sql, (self.project_id, event_dict["event_type"], start_time.isoformat(
+            # ), end_time.isoformat()))
+            # result = cursor.fetchall()
+            # for row in result:
+            #     resulting_custom_data_keys.extend(
+            #         json.loads(row["custom_keys"]))
+
+            clickhouse_sql = ('SELECT JSON_KEYS(custom_data) AS custom_keys from `web_event`'
+                                'WHERE project_id=%(project_id)s AND event_type=%(event_type)s'
+                                ' AND toDate(time_entered) >= toDateTime(%(start_date)s)'
+                                'AND toDate(time_entered) <= toDateTime(%(end_date)s'
+                                'GROUP BY custom_keys')
+
+            result = self.clickhouse_client.execute(clickhouse_sql,
+                                        {
+                                          'project_id': self.project_id,
+                                          'event_type': event_dict["event_type"],
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()
+                                        })
+
             for row in result:
-                resulting_custom_data_keys.extend(
-                    json.loads(row["custom_keys"]))
+                resulting_custom_data_keys.extend(json.loads(row["custom_keys"]))
 
             # Eliminate duplicates
             resulting_custom_data_keys = set(resulting_custom_data_keys)
             custom_data_key_value_aggregation = {}
-            for key in resulting_custom_data_keys:
-                sql = 'SELECT JSON_EXTRACT(custom_data, %s) as key_value, count(*) as key_value_count from \
-                        web_event INNER JOIN `session` ON web_event.session_id=session.session_id where project_id=%s AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)  group by key_value'
-                json_path_for_mysql = f'$.{key}'
-                cursor.execute(sql, (json_path_for_mysql, self.project_id,
-                                    event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
 
-                result = cursor.fetchall()
+            for key in resulting_custom_data_keys:
+                # sql = 'SELECT JSON_EXTRACT(custom_data, %s) as key_value, count(*) as key_value_count from \
+                #         web_event INNER JOIN `session` ON web_event.session_id=session.session_id where project_id=%s AND event_type=%s AND DATE(time_entered) >= DATE(%s)  AND DATE(time_entered) <= DATE(%s)  group by key_value'
+                # json_path_for_mysql = f'$.{key}'
+                # cursor.execute(sql, (json_path_for_mysql, self.project_id,
+                #                     event_dict["event_type"], start_time.isoformat(), end_time.isoformat()))
+
+                # result = cursor.fetchall()
+
+                clickhouse_sql = ('SELECT JSON_EXTRACT(custom_data, %(json_path_for_mysql)s) AS key_value, count(*) as key_value_count FROM' 
+                                    'WHERE project_id=%(project_id)s AND event_type=%(event_type)s'
+                                    ' AND toDate(time_entered) >= toDateTime(%(start_date)s)'
+                                    'AND toDate(time_entered) <= toDateTime(%(end_date)s'
+                                    'GROUP BY custom_keys')
+                
+                json_path_for_mysql = f'$.{key}'
+
+                result = self.clickhouse_client.execute(clickhouse_sql,
+                                        {
+                                          'json_path_for_mysql': json_path_for_mysql,
+                                          'project_id': self.project_id,
+                                          'event_type': event_dict["event_type"],
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()
+                                        })
+
+
                 custom_data_key_value_aggregation[key] = result
             event_dict["custom_data"] = custom_data_key_value_aggregation
 
@@ -136,16 +190,30 @@ class EventDashboard(MethodView):
         self.clickhouse_client = db.get_clickhouse_client()
 
         data = self.get_event_details(self.start_time, self.end_time, self.event_type)
-        with self.db_conn.cursor(cursor=None) as cursor:
+        # with self.db_conn.cursor(cursor=None) as cursor:
 
-            sql = ('SELECT event_type FROM web_event INNER JOIN `session` ON web_event.session_id=session.session_id'
-                ' WHERE  project_id=%s AND DATE(time_entered) >= DATE(%s) AND DATE(time_entered) <= DATE(%s)'
-                ' GROUP BY event_type')
+            # sql = ('SELECT event_type FROM web_event INNER JOIN `session` ON web_event.session_id=session.session_id'
+            #     ' WHERE  project_id=%s AND DATE(time_entered) >= DATE(%s) AND DATE(time_entered) <= DATE(%s)'
+            #     ' GROUP BY event_type')
 
-            cursor.execute(
-                sql, (project_id, self.start_time.isoformat(), self.end_time.isoformat()))
-            result = cursor.fetchall()
-            events_list = [row["event_type"] for row in result]
+            # cursor.execute(
+            #     sql, (project_id, self.start_time.isoformat(), self.end_time.isoformat()))
+            # result = cursor.fetchall()
+
+        clickhouse_sql = ('SELECT event_type FROM `web_events`'
+                                'WHERE project_id=%(project_id)s AND toDate(time_entered) >= toDateTime(%(start_date)s)'
+                                'AND toDate(time_entered) <= toDateTime(%(end_date)s)'
+                                'GROUP BY event_type')
+
+        result = self.clickhouse_client.execute(clickhouse_sql,
+                                         {
+                                            'project_id': self.project_id,
+                                            'start_date': self.start_time.isoformat(),
+                                            'end_date':self.end_time.isoformat()
+                                         })
+
+
+        events_list = [row["event_type"] for row in result]
 
         return render_template('projects/events_dashboard.html', template_context={"project_id": project_id, "organisation": organisation,
                                         "event_data": data, "events_list": events_list, "start_date": self.start_time, "end_date": self.end_time})
