@@ -181,27 +181,81 @@ class SessionDashboard(MethodView):
                 index = index + 1
                 entry_and_exit_point[index] = row
 
-            sql = ("SELECT COUNT(*) AS count, start_page FROM session WHERE project_id=%s \
-                    AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
-                    GROUP BY start_page ORDER BY count DESC")
+            print(entry_and_exit_point)
+            start_page_count_sql = ('SELECT'
+                '   page_url as start_page,'
+                '   COUNT(*) AS count '
+                'FROM'
+                '   web_events '
+                'WHERE'
+                '   ('
+                '      session_id,'
+                '      time_entered'
+                '   )'
+                '   IN '
+                '   ('
+                '      SELECT'
+                '         session_id,'
+                '         MIN(time_entered) '
+                '      FROM'
+                '         web_events '
+                         'WHERE '
+                                    'project_id=%(project_id)s '
+                                    'AND '
+                                    'toDate(time_entered) >= toDate(%(start_date)s) AND toDate(time_entered) <= toDate(%(end_date)s)'
+                '      GROUP BY'
+                '         session_id'
+                '   )'
+                'GROUP BY'
+                '   page_url '
+                'ORDER BY'
+                '   count DESC')
 
-            cursor.execute(sql, (project_id, self.start_time.isoformat(), self.end_time.isoformat()))
-            result = cursor.fetchall()
+            start_page_data = self.clickhouse_client.execute(start_page_count_sql,{'project_id': self.project_id,
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()})
 
             entry_point = {}
-            for row in result:
-                entry_point[row["start_page"]] = row["count"]
+            for page, count in start_page_data:
+                entry_point[page] = count
 
-            sql = ("SELECT COUNT(*) AS count, end_page FROM session WHERE project_id=%s \
-                    AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
-                    GROUP BY end_page ORDER BY count DESC")
+            # Reports on the end page of sessions
+            end_page_count_sql = ('SELECT'
+                '   page_url as end_page,'
+                '   COUNT(*) AS count '
+                'FROM'
+                '   web_events '
+                'WHERE'
+                '   ('
+                '      session_id,'
+                '      time_entered'
+                '   )'
+                '   IN '
+                '   ('
+                '      SELECT'
+                '         session_id,'
+                '         MAX(time_entered) '
+                '      FROM'
+                '         web_events '
+                         'WHERE '
+                            'project_id=%(project_id)s '
+                            'AND '
+                                'toDate(time_entered) >= toDate(%(start_date)s) AND toDate(time_entered) <= toDate(%(end_date)s)'
+                '      GROUP BY'
+                '         session_id'
+                '   )'
+                'GROUP BY'
+                '   page_url '
+                'ORDER BY'
+                '   count DESC')
 
-            cursor.execute(sql, (project_id, self.start_time.isoformat(), self.end_time.isoformat()))
-            result = cursor.fetchall()
+            end_page_data = self.clickhouse_client.execute(end_page_count_sql,{'project_id': self.project_id,
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()})
 
             exit_point = {}
-            for row in result:
-                exit_point[row["end_page"]] = row["count"] 
+            for page, count in end_page_data:
+                exit_point[page] = count
 
             sql = ("SELECT start_page as page_url , COUNT(*) AS count FROM session WHERE project_id=%s \
                     AND DATE(start_time) >= DATE(%s) AND DATE(start_time) <= DATE(%s) \
