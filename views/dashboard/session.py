@@ -137,9 +137,10 @@ class SessionDashboard(MethodView):
         self.organisation = organisation
         self.project_id = project_id
 
-        current_timestamp = datetime.datetime.now().timestamp()
+        current_timestamp = int(datetime.datetime.now().timestamp())
+        default_older_timestamp = int((datetime.datetime.now() - datetime.timedelta(7)).timestamp())
         start_timestamp = request.args.get(
-            "start_time", None) or current_timestamp
+            "start_time", None) or default_older_timestamp
 
         end_timestamp = request.args.get(
             "end_time") or current_timestamp
