@@ -1,7 +1,9 @@
+from redis import Redis
 from config import CLICKHOUSE_DATABASE
 import pymysql
 from flask import g, current_app
 from clickhouse_driver import Client
+import redis
 
 """
 Returns the connection to a database if one already exists, or creates a new connection and 
@@ -28,6 +30,12 @@ def close_database_connection(error):
     db_connection = g.pop('db_connection', None)
     if db_connection is not None:
         db_connection.close()
+
+def get_redis_connection():
+    if 'db_redis' not in g:
+        client = Redis()
+        g.db_redis = client
+    return g.db_redis
 
 def get_clickhouse_client():
     if 'db_clickhouse_client' not in g:

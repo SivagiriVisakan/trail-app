@@ -368,14 +368,22 @@ def register_new_event():
     db_connection = db.get_database_connection()
 
     with db_connection.cursor() as cursor:
-        # TODO: Cache the API Key in Redis
-        get_project_from_api_key_sql = 'SELECT `project_id` FROM `project` WHERE `api_key`=%s'
-        cursor.execute(get_project_from_api_key_sql, (api_key,))
-        result = cursor.fetchone()
-        if not result:
-            response["error"] = "Invalid API key"
-            return response, 404
-        project_id = result.get("project_id")
+        # Search for key in Redis
+        project_id = None
+        project_id = db.get_redis_connection().get(api_key)
+        print('Cached',project_id)
+        if not project_id:
+            # we don't have the ID cached in Redis, so check in DB
+            get_project_from_api_key_sql = 'SELECT `project_id` FROM `project` WHERE `api_key`=%s'
+            cursor.execute(get_project_from_api_key_sql, (api_key,))
+            result = cursor.fetchone()
+            if not result:
+                response["error"] = "Invalid API key"
+                return response, 404
+            # We have successful search in the database
+            project_id = result.get("project_id")
+            # Cache the same in Redis
+            db.get_redis_connection().set(api_key, project_id)
 
     origin_id = sha256(origin_id_components.encode()).hexdigest()
 
@@ -387,9 +395,6 @@ def register_new_event():
     custom_data = json.dumps(custom_data)
 
     session_id = request_body.get("session_id", None)
-
-
-    # TODO: Don't add the events to MySQL once every API is changed to use ClickHouse
 
     if not session_id:
         session_id = str(uuid.uuid4())
