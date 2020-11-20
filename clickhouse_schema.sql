@@ -1,6 +1,6 @@
 CREATE TABLE `web_events` (
-  `session_id` UInt64 NOT NULL,
-  `project_id` 
+  `session_id` FixedString(64) NOT NULL,
+  `project_id` String NOT NULL,
   `origin_user_id` String NOT NULL,
   `time_entered` DateTime NOT NULL,
   `user_agent` String NOT NULL,
@@ -34,3 +34,9 @@ CREATE TABLE `web_events` (
 
 -- Get the count of events categorywise, grouped by date
 -- select toDate(time_entered) as event_date, event_type, count(*) as total_events from web_events where project_id='abcdef' group by event_date, event_type
+
+
+-- select toDate(time_entered) as event_date, os, count(*) from (select distinct(session_id), os, time_entered from web_events order by time_entered) group by event_date,os
+
+-- select page_url, session_id as start_page from web_events where (session_id, time_entered) in ((select session_id, min(time_entered) from web_events group by session_id) where page_url, session_id in (select page_url, session_id as end_page from web_events where (session_id, time_entered) in (select session_id, max(time_entered) from web_events group by session_id)))
+
