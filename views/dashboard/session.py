@@ -273,15 +273,91 @@ class SessionDashboard(MethodView):
                     AND event_type='pageview' GROUP BY page_url")
             cursor.execute(sql, (project_id, self.start_time.isoformat(), self.end_time.isoformat()))
             result = cursor.fetchall()
+            total_hits_by_page_sql = ('SELECT page_url, count(*) from web_events '
+                                      'WHERE '
+                                          'project_id=%(project_id)s '
+                                          'AND '
+                                          'toDate(time_entered) >= toDate(%(start_date)s) AND toDate(time_entered) <= toDate(%(end_date)s) '
+                                       'GROUP BY page_url'
 
+            )
+            total_hits_by_page = self.clickhouse_client.execute(total_hits_by_page_sql, {'project_id': self.project_id,
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()})
+            print(total_hits_by_page)
+            bounce_numerator = {}
+            for page, c in total_hits_by_page:
+                bounce_numerator[page] = c
+            clickhouse_sql = ('SELECT '
+                       'page_url AS page_url,'
+                       'COUNT(*) AS c '
+                    'FROM '
+                       'web_events '
+                    'WHERE '
+                       '('
+                          'session_id,'
+                          'time_entered'
+                       ') '
+                       'IN '
+                       '('
+                          'SELECT '
+                             'session_id,'
+                             'MIN(time_entered) '
+                          'FROM '
+                             'web_events '
+                          'WHERE '
+                              'project_id=%(project_id)s '
+                              'AND '
+                              'toDate(time_entered) >= toDate(%(start_date)s) AND toDate(time_entered) <= toDate(%(end_date)s) '
+                          'GROUP BY '
+                             'session_id '
+                       ') '
+                       'AND '
+                       '('
+                          'page_url,'
+                          'session_id'
+                       ') '
+                       'IN '
+                       '('
+                          'SELECT '
+                             'page_url AS end_page,'
+                             'session_id '
+                          'FROM '
+                             'web_events '
+                          'WHERE'
+                             '('
+                                'session_id,'
+                                'time_entered'
+                             ') '
+                             'IN '
+                             '('
+                                'SELECT '
+                                   'session_id,'
+                                   'MAX(time_entered) '
+                                'FROM '
+                                   'web_events '
+                                'WHERE '
+                                    'project_id=%(project_id)s '
+                                  'AND '
+                                    'toDate(time_entered) >= toDate(%(start_date)s) AND toDate(time_entered) <= toDate(%(end_date)s) '
+                                'GROUP BY '
+                                   'session_id '
+                             ')'
+                       ') '
+                    'GROUP BY '
+                       'page_url')
+
+            d = self.clickhouse_client.execute(clickhouse_sql,{'project_id': self.project_id,
+                                          'start_date': self.start_time.isoformat(),
+                                          'end_date':self.end_time.isoformat()})
             bounce_denominator = {}
-            for row in result:
-                bounce_denominator[row["page_url"]] = row["count"]
+            for page, count in d:
+                bounce_denominator[page] = count
 
             bounce_rate = {}
             for page_url, count in bounce_denominator.items():
-                numerator = bounce_numerator[page_url]
-                bounce_rate[page_url] = str(round((numerator/count) * 100, 2)) + '%'
+                numerator = entry_point[page_url]
+                bounce_rate[page_url] = str(round((count/numerator) * 100, 2)) + '%'
 
 
         return render_template('projects/sessions_dashboard.html',
