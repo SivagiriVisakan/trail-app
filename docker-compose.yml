@@ -20,5 +20,26 @@ services:
       build:
         dockerfile: Dockerfile
         context: .
+      links:
+        - mysql
+      depends_on:
+        - mysql 
       ports:
         - "5000:5000"
+    mysql:
+      image: mysql
+      restart: always
+      environment:
+        - MYSQL_HOST=localhost
+        - MYSQL_PORT=3306
+        - MYSQL_ROOT_HOST=%
+        - MYSQL_DATABASE=flask_test
+        - MYSQL_USER=root
+        - MYSQL_PASSWORD=supersecretpassword
+      ports:
+        - "3306:3306"
+      expose:
+        - "3306"
+      volumes:
+        - "./database_scripts/sql/schema.sql:/docker-entrypoint-initdb.d/1.sql"
+        - "./database_scripts/sql/data.sql:/docker-entrypoint-initdb.d/2.sql"
