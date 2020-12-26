@@ -2,6 +2,8 @@ version: "3"
 services:
     server:
      image: yandex/clickhouse-server
+     hostname: server
+     restart: always
      ports:
      - "8123:8123"
      - "9000:9000"
@@ -12,6 +14,10 @@ services:
       nofile:
        soft: 262144
        hard: 262144
+     expose:
+      - "9000"
+     volumes:
+       - "./database_scripts/clickhouse/clickhouse_schema.sql:/docker-entrypoint-initdb.d/3.sql"
     redis:
       image: redis
       ports:
@@ -22,19 +28,19 @@ services:
         context: .
       links:
         - mysql
+        - server
       depends_on:
         - mysql 
+        - server
       ports:
         - "5000:5000"
     mysql:
       image: mysql
-      restart: always
+      command: --default-authentication-plugin=mysql_native_password
       environment:
-        - MYSQL_HOST=localhost
         - MYSQL_PORT=3306
-        - MYSQL_ROOT_HOST=%
         - MYSQL_DATABASE=flask_test
-        - MYSQL_USER=root
+        - MYSQL_ROOT_PASSWORD=supersecretpassword
         - MYSQL_PASSWORD=supersecretpassword
       ports:
         - "3306:3306"

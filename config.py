@@ -8,10 +8,10 @@ DATABASE = {
 }
 
 CLICKHOUSE_DATABASE = {
-    "HOST": os.getenv("CLICKHOUSE_DB_HOST", "localhost"),
+    "HOST": os.getenv("CLICKHOUSE_DB_HOST", "server"),
     "USER": os.getenv("CLICKHOUSE_DB_USER","default"),
     "PASSWORD": os.getenv("CLICKHOUSE_DB_PASS", ""),
-    "DATABASE_NAME": os.getenv("CLICKHOUSE_DB_NAME", "trailapp")
+    "DATABASE_NAME": os.getenv("CLICKHOUSE_DB_NAME", "default")
 }
 
 SECRET_KEY=os.getenv("SECRET_KEY", None)
