@@ -1,5 +1,6 @@
 {% extends "layouts/dashboard_base_layout.html" %}
 {% set active_page = "Events" %}
+{% set show_select_project_dropdown = true %}
 
 {% block title %}Events &middot; {{ template_context.project_id }} | Trail{% endblock %}
 
@@ -13,8 +14,9 @@
                     <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
                         <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
                             <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
-                            <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Events</li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('organisation.view_organisation',slug=g.active_organisation) }}">{{ g.active_organisation }}</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('organisation.view_project',slug=g.active_organisation, project_id=active_project) }}">{{ active_project }}</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ "Events" }}</li>              
                         </ol>
                     </nav>
                 </div>
@@ -253,9 +255,9 @@
             if (!eventType || eventType === 'None') {
                 eventType = null;
             }
-            var startDateInput = {{ template_context['start_date'].strftime('%m-%d-%Y') | tojson }};
-            var endDateInput = {{ template_context['end_date'].strftime('%m-%d-%Y') | tojson }};
-            var urlFormat = "{{ url_for('organisation.project_events_dashboard', _external=True, workspace=template_context.workspace, project_id=template_context.project_id,
+            var startDateInput = {{ template_context['start_date'].strftime('%m/%d/%Y') | tojson }};
+            var endDateInput = {{ template_context['end_date'].strftime('%m/%d/%Y') | tojson }};
+            var urlFormat = "{{ url_for('organisation.project_events_dashboard', _external=True, organisation=template_context.organisation, project_id=template_context.project_id,
             start_time = 'START', end_time = 'END', event_type = 'EVENT_TYPE') }}";
             urlFormat = urlFormat.replace(/&amp;/g, '&');
         </script>

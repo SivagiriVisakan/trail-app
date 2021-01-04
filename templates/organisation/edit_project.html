@@ -1,0 +1,69 @@
+{% extends "layouts/dashboard_base_layout.html" %}
+{% set active_page = "Project home" %}
+{% set show_select_project_dropdown = true %}
+
+{% set template_context = {"project_id": project.project_id, "organisation": slug} %}
+{% block title %}Home &middot; {{ project.project_id }} | Trail{% endblock %}
+
+{% block content %}
+
+
+<div class="header pb-6 d-flex align-items-center" style="min-height: 100px;
+  background: url('/static/assets/images/project.svg') no-repeat var(--secondary);
+
+  background-size: 30%;
+  background-position: center right 15%">
+
+  <!-- Header container -->
+  <div class="container-fluid">
+    <div class="row">
+
+      <nav aria-label="breadcrumb" class="ml-md-4 my-3">
+        <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+          <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+          <li class="breadcrumb-item"><a href="#">{{ g.active_organisation }}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{ active_project }}</li>
+        </ol>
+      </nav>
+
+    </div>
+    <div class="row">
+      <div class="ml-4 col-lg-7 col-md-7 col-sm-6">
+        <h3 class="display-3 text-primary"> {{ project.name }}</h3>
+        <p class="text-dark mt-0 mb-5">
+          You can edit your project details here.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container-fluid mt-6">
+  <div class="row justify-content-md-center">
+    <div class="col-xl-8">
+
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title text-muted text-uppercase">
+            Project details
+          </h4>
+          <form action="{{ url_for('organisation.edit_project', slug=g.active_organisation, project_id=active_project) }}"  method="POST" role="form">
+            {% include "partials/flashed_messages.html" %}
+            <div class="form-group">
+              <label for="name-input">Project Name</label>
+                <input class="form-control" id="name-input" value="{{ project.name }}" maxlength="30" placeholder="Name" name="name" type="text">
+            </div>
+            <div class="form-group">
+              <label for="description-input">Project Description</label>
+                <textarea class="form-control" id="name-input" value="{{ project.description }}" placeholder="Name" name="description" type="text" rows="3">{{ project.description }}</textarea>
+            </div>
+            <div class="text-center">
+              <input type="submit" class="btn btn-primary mt-4" value="Edit Project">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -9,13 +9,17 @@
   {% include "partials/signed_in_top_nav.html" %}
 </div>
 <!-- Header -->
-<div class="header pb-6 d-flex align-items-center" style="min-height: 500px; background: #566be8">
+<div class="header pb-6 d-flex align-items-center"
+  style="min-height: 500px;
+        background: url('/static/assets/images/home_header.svg') var(--primary) no-repeat;
+        background-size: 35%;
+        background-position: center right 15%">
   <!-- Header container -->
   <div class="container-fluid d-flex align-items-center">
     <div class="row">
       <div class="col-lg-7 col-md-10">
         <h1 class="display-2 text-white">Hello {{ user.first_name or ""}}!</h1>
-        <p class="text-white mt-0 mb-5">This is your home page. You can see the workspaces that you're part of and
+        <p class="text-white mt-0 mb-5">This is your home page. You can see the organisations that you're part of and
           your projects here.</p>
       </div>
     </div>
@@ -30,41 +34,46 @@
         <div class="card-header">
           <div class="row align-items-center">
             <div class="col-8">
-              <h3 class="mb-0">Workspaces</h3>
+              <h3 class="mb-0">Organisations
+                <a href="{{ url_for('organisation.new_organisation') }}" class="btn btn-sm btn-outline-primary ml-3"
+                  data-toggle="tooltip" data-placement="bottom" title="Create new organisation"><i
+                    class="fas fa-plus"></i></a>
+              </h3>
             </div>
           </div>
         </div>
-        <form method="GET" role="form" action="{{ url_for('organisation.organisation') }}">
-        {% for keys, value in response.items() %}
+        {% if empty=="True" %}
+        <div class="card-body">
+          <div class="card">
+            <h3 class="text-primary">Want to join in a organisation ask your admin to add you..</h3>
+          </div>
+        </div>
+        {% endif %}
+        {% for _slug, _projects in response.items() %}
         <div class="card-body">
           <div class="card">
             <div class="card-header">
-              <h2 class="text-primary"><a href="{{ url_for('organisation.view_organisation',slug= keys) }}">{{ keys }}</a>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-3" data-toggle="tooltip"
-                  data-placement="bottom" title="Create new project">
-                  <a href="{{ url_for('organisation.new_project', slug=keys) }}"><i class="fas fa-plus"></i></a>
-                </button></h2>
+              <h2 class="text-primary"><a
+                  href="{{ url_for('organisation.view_organisation',slug= _slug) }}">{{ _slug }}</a>
+                <a href="{{ url_for('organisation.new_project', slug=_slug) }}"
+                  class="btn btn-sm btn-outline-primary ml-3" data-toggle="tooltip" data-placement="bottom"
+                  title="Create new project"><i class="fas fa-plus"></i></a>
+              </h2>
             </div>
-            {% for item in value %}
-            {% for key, values in item.items() %}
-            {% if key=="project_id" %}
+            {% for _project_id in _projects %}
+            {% if _project_id %}
             <div class="card-body">
               <ul class="list-group list-group-flush">
-                <li class="list-group-item"><a href="{{ url_for('organisation.project_dashboard', workspace=keys,project_id=values) }}" class="text-underline text-default">{{ values }}</a></li>
+                <li class="list-group-item"><a
+                    href="{{ url_for('organisation.view_project', slug=_slug,project_id=_project_id) }}"
+                    class="text-underline text-default">{{ _project_id }}</a></li>
               </ul>
             </div>
             {% endif %}
             {% endfor %}
-            {% endfor %}
-          </div>
-          {% endfor %}
-          <div class="card">
-            <div class="card-header">
-              <h2 class="text-primary"><a href="{{ url_for('organisation.new_organisation') }}">Create new organisation</a>    
-            </div>
           </div>
         </div>
-      </form>
+        {% endfor %}
       </div>
     </div>
   </div>

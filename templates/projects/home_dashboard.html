@@ -1,8 +1,8 @@
 {% extends "layouts/dashboard_base_layout.html" %}
 {% set active_page = "Dashboard" %}
+{% set show_select_project_dropdown = true %}
 
 {% block title %}Dashboard - Trail{% endblock %}
-
 
 
 {% block content %}
@@ -14,9 +14,10 @@
           <h6 class="h2 text-white d-inline-block mb-0">{{ template_context.project_id | title }}</h6>
           <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
             <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
-              <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i></a></li>
-              <li class="breadcrumb-item"><a href="#">Dashboards</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Default</li>
+              <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+              <li class="breadcrumb-item"><a href="{{ url_for('organisation.view_organisation',slug=g.active_organisation) }}">{{ g.active_organisation }}</a></li>
+              <li class="breadcrumb-item"><a href="{{ url_for('organisation.view_project',slug=g.active_organisation, project_id=active_project) }}">{{ active_project }}</a></li>
+              <li class="breadcrumb-item active" aria-current="page">{{ "Dashboard" }}</li>
             </ol>
           </nav>
         </div>
@@ -145,7 +146,8 @@
               <h3 class="mb-0">Events</h3>
             </div>
             <div class="col text-right">
-              <a href="{{ url_for('organisation.project_events_dashboard', **template_context) }}" class="btn btn-sm btn-primary">See all</a>
+              <a href="{{ url_for('organisation.project_events_dashboard', **template_context) }}"
+                class="btn btn-sm btn-primary">See all</a>
             </div>
           </div>
         </div>
