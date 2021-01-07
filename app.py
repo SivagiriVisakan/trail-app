@@ -1,4 +1,5 @@
 from flask import Flask, render_template, g, request, flash
+from flask.helpers import send_from_directory
 from flask_bcrypt import Bcrypt, generate_password_hash
 
 import auth
@@ -83,3 +84,7 @@ def profile():
 			if not password:
 				flash("Enter password", "danger")
 			return render_template('profile.html',profile=profile)
+
+@app.route('/js/trail.js', methods=['GET','POST'])
+def send_js():
+    return send_from_directory('scripts', 'trail-client.js')
