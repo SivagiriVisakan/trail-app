@@ -8,6 +8,8 @@ Trail is an open-source user analytics and event tracking platform for your site
 With Trail, you can get insights to into the userbase of your site - info on the content people like, some info on the demographics of the users etc etc.
 We would say that this is a minimal version of Google Analytics.
 
+You can add your add as many members you'd like to monitor the analytics
+to your organisation.
 
 ![Trail Screenshot](.github/assets/session_screenshot.png)
 
@@ -16,8 +18,8 @@ We would say that this is a minimal version of Google Analytics.
 (_Instructions to run locally_)
 
  1. Clone the repo
- 2. Run the MySQl, ClickHouse and Redis 
-    If you use docker, then do `$ docker-compose up`
+ 2. Run the MySQL, ClickHouse and Redis  
+    If you use docker, then do `$ docker-compose up clickhouse-server mysql`
  3. Install the dependencies and run
 
  ```
@@ -32,8 +34,9 @@ We would say that this is a minimal version of Google Analytics.
 ### The stack
 
 (_What did you use to build this?_)
-The current version is built using [Flask](https://flask.palletsprojects.com/en/1.1.x/) and uses MySQL and ClickHouse for database.
-Redis is used for caching.
+
+The current version is built using [Flask](https://flask.palletsprojects.com/en/1.1.x/) and uses [MySQL](https://www.mysql.com/) and [ClickHouse](https://clickhouse.tech/) for database.  
+[Redis](https://redis.io/) is used for caching.
 
 ### The internals
 (_Some thoughts on the development and working_)
@@ -71,7 +74,7 @@ Clickhouse's fast on-the-fly reporting capabilities
 (_Why did we work on this project?_)
 
 For fun and to learn!
-(and we had to submit a project for school :sweat_smile:)
+(and we had to submit a project for school :sweat_smile: )
 
 ### Demo
 
@@ -79,6 +82,7 @@ You can checkout the demo hosted [here](http://ec2-18-234-52-1.compute-1.amazona
 
 Username: `test`  
 Password: `test`
+
 ### TODOs
 
 - [x] Re-organise code

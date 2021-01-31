@@ -1,8 +1,8 @@
 version: "3"
 services:
-    server:
+    clickhouse-server:
      image: yandex/clickhouse-server
-     hostname: server
+     hostname: clickhouse-server
      restart: always
      ports:
      - "8123:8123"
@@ -28,10 +28,10 @@ services:
         context: .
       links:
         - mysql
-        - server
+        - clickhouse-server
       depends_on:
         - mysql 
-        - server
+        - clickhouse-server
       ports:
         - "5000:5000"
     mysql:
