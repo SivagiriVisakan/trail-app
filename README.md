@@ -4,9 +4,12 @@
 
 (_What is this project about?_)
 
-Trail is an open-source user analytics and event tracking platform for your sites. 
+Trail is an open-source user analytics and event tracking platform for your sites.
 With Trail, you can get insights to into the userbase of your site - info on the content people like, some info on the demographics of the users etc etc.
-We would say that this is a minimal version of Google Analytics, minus the aggressive tracking.
+We would say that this is a minimal version of Google Analytics.
+
+
+![Trail Screenshot](.github/assets/session_screenshot.png)
 
 ### The how
 
@@ -72,8 +75,10 @@ For fun and to learn!
 
 ### Demo
 
-You can checkout the demo hosted here
+You can checkout the demo hosted [here](http://ec2-18-234-52-1.compute-1.amazonaws.com/)
 
+Username: `test`  
+Password: `test`
 ### TODOs
 
 - [x] Re-organise code
