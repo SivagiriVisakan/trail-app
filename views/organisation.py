@@ -1,21 +1,22 @@
-from flask import render_template, g, request, redirect, url_for, flash, send_from_directory
+import os
+
+import app
+import helpers.db as db
+from controllers.organisation import set_active_org_project
+from flask import (flash, g, redirect, render_template, request,
+                   url_for)
 from flask.views import MethodView
+from helpers.decorators import check_valid_org_and_project, login_required
+from helpers.utils import allowed_file
 from werkzeug.utils import secure_filename
 
-import auth
-import os
-import app
-import db
-from organisation import set_active_org_project
-
-import utils
 
 class ViewOrganisation(MethodView):
 	"""
 		This view represents a organisation
 	"""
 
-	decorators = [auth.check_valid_org_and_project, auth.login_required]
+	decorators = [check_valid_org_and_project, login_required]
 
 	def get(self, slug):
 
@@ -154,7 +155,7 @@ class EditOrganisation(MethodView):
 	"""
 		This method is to edit a organisation
 	"""
-	decorators = [auth.check_valid_org_and_project, auth.login_required]
+	decorators = [check_valid_org_and_project, login_required]
 
 	def get(self, slug):
 		set_active_org_project(slug)
@@ -221,7 +222,7 @@ class NewOrganisation(MethodView):
 		This view is to create new organisation
 	"""
 
-	decorators = [auth.login_required]
+	decorators = [login_required]
 
 	def allowed_file(self, filename):
 		ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}

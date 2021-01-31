@@ -1,13 +1,11 @@
 import datetime
 
+import helpers.db as db
+import helpers.utils as utils
+from controllers.organisation import set_active_org_project
 from flask import redirect, render_template, request, url_for
 from flask.views import MethodView
-
-import auth
-import db
-from organisation import set_active_org_project
-
-import utils
+from helpers.decorators import check_valid_org_and_project, login_required
 
 
 class SessionDashboard(MethodView):
@@ -15,7 +13,7 @@ class SessionDashboard(MethodView):
     Class for handling requests related to the project's session view
     """
 
-    decorators = [auth.check_valid_org_and_project, auth.login_required]
+    decorators = [check_valid_org_and_project, login_required]
 
     def get_session_count(self):
         """

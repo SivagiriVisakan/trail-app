@@ -1,6 +1,7 @@
 # TrailApp
 
 ### The what
+
 (_What is this project about?_)
 
 Trail is an open-source user analytics and event tracking platform for your sites. 
@@ -8,12 +9,14 @@ With Trail, you can get insights to into the userbase of your site - info on the
 We would say that this is a minimal version of Google Analytics, minus the aggressive tracking.
 
 ### The how
+
 (_Instructions to run locally_)
 
  1. Clone the repo
  2. Run the MySQl, ClickHouse and Redis 
     If you use docker, then do `$ docker-compose up`
  3. Install the dependencies and run
+
  ```
  $ virtualenv trail-venv --python=python3
  $ source trail-venv/bin/activate
@@ -23,8 +26,8 @@ We would say that this is a minimal version of Google Analytics, minus the aggre
 
  You can configure ports and authentication in `config.py`, or by setting them in the enviroment or `.flaskenv`
 
-
 ### The stack
+
 (_What did you use to build this?_)
 The current version is built using [Flask](https://flask.palletsprojects.com/en/1.1.x/) and uses MySQL and ClickHouse for database.
 Redis is used for caching.
@@ -61,7 +64,6 @@ it sends a events through the API, which is processed and validated by the Flask
 The site data gets updated in realtime with the help of
 Clickhouse's fast on-the-fly reporting capabilities
 
-
 ### The why
 (_Why did we work on this project?_)
 
@@ -74,21 +76,17 @@ You can checkout the demo hosted here
 
 ### TODOs
 
-- [ ] Re-organise the code and improve the overall structure
-- [ ] Abstract the database interactions - maybe consider using an ORM
-- [ ] Document better
+- [x] Re-organise code
+- [ ] Abstract the database interactions - consider using an ORM/query builder
+- [ ] Expand the documentation
 
 ### Credits
 
 - Thanks to the [Argon](https://github.com/creativetimofficial/argon-dashboard) project, based on which the frontend is built.
 
-### Hosting
-
-If you are considering using Trail for a production application, and need help in setting up/self-hosting it, please feel free to reach out.
-We would  be more than happy to help!
-
 ### Contributing
 
+If you have anything to say about Trail, please feel free to reach out.
 Contributions are always welcome, it would be great to have you contributing to this project.
 Please feel free to open an issue if you have something in mind.
 

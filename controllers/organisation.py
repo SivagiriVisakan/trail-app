@@ -1,17 +1,15 @@
-import json 
-import datetime 
-
-from flask import Blueprint, request, render_template, flash, g, send_from_directory, redirect, url_for
-
-from functools import wraps
-import db
-from utils import check_missing_keys
-import auth
-from werkzeug.utils import secure_filename
-import os
-import app
+import datetime
+import json
 import uuid
+from functools import wraps
 
+import app
+import helpers.db as db
+from flask import (Blueprint, g, redirect, render_template, request,
+                   send_from_directory, url_for)
+from helpers.decorators import check_valid_org_and_project, login_required
+from helpers.utils import check_missing_keys
+from werkzeug.utils import secure_filename
 
 blueprint = Blueprint('organisation', __name__, url_prefix='/')
 
@@ -30,7 +28,7 @@ def get_organisation(slug, username):
 	
 
 @blueprint.route('', methods=['GET'])
-@auth.login_required
+@login_required
 def organisation():
 	#TODO: Do conditional rendering here (or somewhere) based on user's authencation state
 	#		i.e if he is logged in, show organisations list, else show a landing page.
@@ -70,8 +68,8 @@ def upload_file(filename):
 
 
 @blueprint.route('/<string:slug>/remove_member/<string:member_name>', methods=['GET'])
-@auth.login_required
-@auth.check_valid_org_and_project
+@login_required
+@check_valid_org_and_project
 def remove_member(slug, member_name):
 	if request.method == "GET":
 		user = g.user
@@ -91,15 +89,15 @@ def set_active_org_project(organisation, project=None):
 	g.active_project = project
 
 @blueprint.route('/<string:organisation_slug>/testing')
-@auth.login_required
+@login_required
 def testing(organisation_slug):
 	set_active_org_project(organisation_slug)
 	return render_template('test_side.html')
 
 
 @blueprint.route('/<string:slug>/project/<string:project_id>/get-api', methods=["GET"])
-@auth.login_required
-@auth.check_valid_org_and_project
+@login_required
+@check_valid_org_and_project
 def get_api(slug, project_id):
 	if request.method == "GET":
 		response = {}
@@ -121,8 +119,8 @@ def get_api(slug, project_id):
 
 
 @blueprint.route('/<string:organisation>/project/<string:project_id>/dashboard/')
-@auth.login_required
-@auth.check_valid_org_and_project
+@login_required
+@check_valid_org_and_project
 def project_dashboard(organisation, project_id):
 	set_active_org_project(organisation, project_id)
 	return render_template('projects/home_dashboard.html', 
@@ -130,13 +128,14 @@ def project_dashboard(organisation, project_id):
 
 
 
+from views.dashboard.event import EventDashboard
 # The import is being done here and not at the top for the time being, because the 
 # SessionDashboard imports a function from this module to it.
 # Ideally, it should be moved into a seperate file and this import moved to the top 
 from views.dashboard.session import SessionDashboard
-from views.dashboard.event import EventDashboard
-from views.project import ViewProject, EditProject, NewProject
-from views.organisation import ViewOrganisation, EditOrganisation, NewOrganisation
+from views.organisation import (EditOrganisation, NewOrganisation,
+                                ViewOrganisation)
+from views.project import EditProject, NewProject, ViewProject
 
 blueprint.add_url_rule('/new/',
 				view_func=NewOrganisation.as_view('new_organisation'), methods=['GET','POST'])

@@ -1,13 +1,15 @@
-from flask import Flask, render_template, g, request, flash
+import os
+
+from flask import Flask, flash, g, render_template, request
 from flask.helpers import send_from_directory
 from flask_bcrypt import Bcrypt, generate_password_hash
 
-import auth
-import api
 import config
-import db
-import organisation
-import os
+import controllers.api as api
+import controllers.auth as auth
+import controllers.organisation as organisation
+import helpers.db as db
+
 
 def register_blueprints(app):
     """Register Flask blueprints."""
@@ -53,7 +55,6 @@ def profile():
 		profile = cursor.fetchone()
 
 	if request.method == "GET":
-			
 		return render_template('profile.html',profile=profile)
 
 	elif request.method == "POST":

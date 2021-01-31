@@ -3,10 +3,10 @@ import uuid
 from flask import flash, g, redirect, render_template, request, url_for
 from flask.views import MethodView
 
-import auth
-import db
-import utils
-from organisation import set_active_org_project
+from helpers.decorators import login_required, check_valid_org_and_project
+import helpers.db as db
+import helpers.utils as utils
+from controllers.organisation import set_active_org_project
 
 
 class ViewProject(MethodView):
@@ -14,7 +14,7 @@ class ViewProject(MethodView):
     The view that presents a project.
     """
 
-    decorators = [auth.check_valid_org_and_project, auth.login_required]
+    decorators = [check_valid_org_and_project, login_required]
 
     def get(self, slug, project_id):
         set_active_org_project(slug, project_id)
@@ -43,7 +43,7 @@ class EditProject(MethodView):
     The view that presents a project.
     """
 
-    decorators = [auth.check_valid_org_and_project, auth.login_required]
+    decorators = [check_valid_org_and_project, login_required]
 
     def get(self, slug, project_id):
         db_conn = db.get_database_connection()
@@ -89,7 +89,7 @@ class NewProject(MethodView):
     The view to create a new project.
     """
 
-    decorators = [auth.check_valid_org_and_project, auth.login_required]
+    decorators = [check_valid_org_and_project, login_required]
 
     def get(self, slug):
         return render_template('organisation/new_project.html', slug=slug)
