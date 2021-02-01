@@ -5,11 +5,8 @@
 (_What is this project about?_)
 
 Trail is an open-source user analytics and event tracking platform for your sites.
-With Trail, you can get insights to into the userbase of your site - info on the content people like, some info on the demographics of the users etc etc.
-We would say that this is a minimal version of Google Analytics.
+With Trail, you can get insights to into the userbase of your website - info on the most visited pages, info on the demographics of the users etc.
 
-You can add your add as many members you'd like to monitor the analytics
-to your organisation.
 
 ![Trail Screenshot](.github/assets/session_screenshot.png)
 
@@ -19,10 +16,12 @@ to your organisation.
 
  1. Clone the repo
  2. Run the MySQL, ClickHouse and Redis  
-    If you use docker, then do `$ docker-compose up clickhouse-server mysql`
- 3. Install the dependencies and run
+    If you use docker, then do `$ docker-compose up clickhouse-server mysql redis`  
+   If you're are not using docker-compose, then you'll have to setup the DBs.
+   The scripts are in `database_scripts/`
+ 3. Install the dependencies and run the server
 
- ```
+ ```bash
  $ virtualenv trail-venv --python=python3
  $ source trail-venv/bin/activate
  $ pip install -r requirements.txt
