@@ -77,7 +77,7 @@ For fun and to learn!
 
 ### Demo
 
-You can checkout the demo hosted [here](http://ec2-18-234-52-1.compute-1.amazonaws.com/)
+You can checkout the demo hosted [here](http://ec2-184-72-168-241.compute-1.amazonaws.com/)
 
 Username: `test`  
 Password: `test`
